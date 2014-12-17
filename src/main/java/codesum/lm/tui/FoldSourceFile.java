@@ -2,13 +2,14 @@ package codesum.lm.tui;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import org.eclipse.jdt.core.dom.CompilationUnit;
 
 import codesum.lm.main.ASTVisitors;
 import codesum.lm.main.ASTVisitors.TreeCreatorVisitor;
-import codesum.lm.main.Settings;
 import codesum.lm.main.CodeUtils;
+import codesum.lm.main.Settings;
 import codesum.lm.main.UnfoldAlgorithms;
 import codesum.lm.main.UnfoldAlgorithms.GreedyTopicSumAlgorithm;
 import codesum.lm.topicsum.GibbsSampler;
@@ -16,8 +17,7 @@ import codesum.lm.topicsum.GibbsSampler;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
-import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Range;
 
 public class FoldSourceFile {
@@ -37,8 +37,8 @@ public class FoldSourceFile {
 		@Parameter(names = { "-c", "--compression" }, description = "Desired compression ratio", required = true)
 		int compressionRatio;
 
-		@Parameter(names = { "-o", "--outFile" }, description = "Output file containing folds", required = true)
-		File outFile;
+		@Parameter(names = { "-o", "--outFile" }, description = "Where to save folded source file")
+		File outFile = null;
 
 	}
 
@@ -70,9 +70,11 @@ public class FoldSourceFile {
 	 * @param compressionRatio
 	 *            (%) desired compression ratio
 	 * @param outFile
-	 *            (optional) file to save folds to
+	 *            (optional) where to save folded source file
+	 *
+	 * @return folded file
 	 */
-	public static ArrayList<Integer> foldSourceFile(final String workingDir,
+	public static String foldSourceFile(final String workingDir,
 			final File file, final String project, final int compressionRatio,
 			final File outFile) {
 
@@ -99,50 +101,24 @@ public class FoldSourceFile {
 		final ArrayList<Range<Integer>> unfoldedFolds = UnfoldAlgorithms
 				.unfoldTree(tcv.getTree(), new GreedyTopicSumAlgorithm(), false);
 
-		// Get folded LOC
-		final ArrayList<Integer> foldedLOC = getFoldedLines(file,
-				unfoldedFolds, tcv.allFolds);
-
-		// Save folds to file if requested
-		if (outFile != null)
-			CodeUtils.saveStringFile(Joiner.on(" ").join(foldedLOC),
-					outFile);
-
-		return foldedLOC;
-	}
-
-	/** Convert unfolded char regions to folded LOCs */
-	private static ArrayList<Integer> getFoldedLines(final File sourceFile,
-			final ArrayList<Range<Integer>> unfoldedFolds,
-			final ArrayList<Range<Integer>> allFolds) {
-
-		// Read file to string
-		final String fileString = CodeUtils.readFileString(sourceFile);
-
-		// Convert regions to unfold into lines to fold
-		final ArrayList<Integer> foldedLines = Lists.newArrayList();
-
-		for (final Range<Integer> fold : allFolds) {
-			if (!unfoldedFolds.contains(fold)) { // If folded
-
-				// Get start line +1 (first line of char range isn't folded)
-				int startLine = fileString.substring(0, fold.lowerEndpoint())
-						.split("\n").length;
-				// unless fold is the whole file
-				if (fold.lowerEndpoint() != 0
-						|| fold.upperEndpoint() != fileString.length())
-					startLine += 1;
-
-				// Get end line
-				final int endLine = fileString.substring(0,
-						fold.upperEndpoint()).split("\n").length;
-
-				// Add folded LOCs
-				for (int line = startLine; line <= endLine; line++)
-					foldedLines.add(line);
-			}
+		// Convert folds to HashMap<Range,isFolded>
+		final HashMap<Range<Integer>, Boolean> folds = Maps.newHashMap();
+		for (final Range<Integer> r : tcv.allFolds) {
+			if (unfoldedFolds.contains(r))
+				folds.put(r, false);
+			else
+				folds.put(r, true);
 		}
-		return foldedLines;
+
+		// Get folded file
+		final String fileString = CodeUtils.readFileString(file);
+		final String foldedFile = CodeUtils.getFolded(fileString, folds, tcv);
+
+		// Save folded file if requested
+		if (outFile != null)
+			CodeUtils.saveStringFile(foldedFile, outFile);
+
+		return foldedFile;
 	}
 
 	private FoldSourceFile() {
