@@ -78,6 +78,12 @@ public class FoldSourceFile {
 			final File file, final String project, final int compressionRatio,
 			final File outFile) {
 
+		System.out
+				.println("TASSAL: Tree-based Autofolding Software Summarization ALgorithm");
+		System.out
+				.println("===============================================================");
+		System.out.println("\nFolding file " + file.getName() + "...\n");
+
 		// Set paths and default code folder settings
 		final Settings set = new Settings();
 
@@ -87,6 +93,7 @@ public class FoldSourceFile {
 		set.compressionRatio = 100 - compressionRatio;
 
 		// Load Topic Model
+		System.out.println("Deserializing the model...");
 		set.sampler = GibbsSampler.readCorpus(workingDir
 				+ "TopicSum/Source/SamplerState.ser");
 
@@ -109,14 +116,20 @@ public class FoldSourceFile {
 			else
 				folds.put(r, true);
 		}
+		System.out.println("done.");
 
 		// Get folded file
 		final String fileString = CodeUtils.readFileString(file);
 		final String foldedFile = CodeUtils.getFolded(fileString, folds, tcv);
+		System.out.println("\nFolded file " + file.getName() + ": \n\n"
+				+ foldedFile);
 
 		// Save folded file if requested
-		if (outFile != null)
+		if (outFile != null) {
+			System.out.print("Saving folded file in " + outFile + "...");
 			CodeUtils.saveStringFile(foldedFile, outFile);
+		}
+		System.out.println("done.");
 
 		return foldedFile;
 	}

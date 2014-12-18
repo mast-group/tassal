@@ -3,11 +3,11 @@ package codesum.lm.topicsum;
 import java.io.Serializable;
 
 import com.esotericsoftware.kryo.DefaultSerializer;
-import com.esotericsoftware.kryo.serializers.CompatibleFieldSerializer;
+import com.esotericsoftware.kryo.serializers.JavaSerializer;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
 
-@DefaultSerializer(CompatibleFieldSerializer.class)
+@DefaultSerializer(JavaSerializer.class)
 public class Topic implements Serializable {
 
 	private static final long serialVersionUID = -6737290631881566109L;

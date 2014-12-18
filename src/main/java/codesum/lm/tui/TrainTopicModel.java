@@ -5,8 +5,8 @@ import java.io.FilenameFilter;
 
 import org.apache.commons.io.FileUtils;
 
-import codesum.lm.main.Settings;
 import codesum.lm.main.CodeUtils;
+import codesum.lm.main.Settings;
 import codesum.lm.topicsum.TopicSum;
 
 import com.beust.jcommander.JCommander;
@@ -62,6 +62,12 @@ public class TrainTopicModel {
 	 */
 	public static void trainTopicModel(final String workingDir,
 			final String projectsDir, final int iterations) throws Exception {
+
+		System.out
+				.println("TASSAL: Tree-based Autofolding Software Summarization ALgorithm");
+		System.out
+				.println("===============================================================");
+		System.out.println("\nRunning topic model training stage...");
 
 		// Get all projects in projects directory
 		final File projDir = new File(projectsDir);
