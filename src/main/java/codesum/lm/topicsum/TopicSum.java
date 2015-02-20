@@ -1,14 +1,15 @@
 package codesum.lm.topicsum;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * Adapted with permission from Rebecca Mason's TopicSum Code.
- * 
+ *
  * Modified implementation of the "TopicSum" model from the paper
  * "Content Models for Multi-Document Summarization" by Aria Haghighi & Lucy
  * Vanderwende (ACL 2009).
- * 
+ *
  * @see <a
  *      href="https://github.com/rebeccamason/codesample">https://github.com/rebeccamason/codesample</a>
  */
@@ -118,12 +119,20 @@ public class TopicSum {
 			// System.out.printf("%n Block %d: %s", m, corpus.getCluster(ci)
 			// .getDoc(di).getSent(m).getOriginal());
 			// }
+
+			// Print hyperparameters
+			System.out.println("\n\n===== Hyperparameters:");
+			System.out.println("alpha*m_k: "
+					+ Arrays.toString(gibbsSampler.alpham));
+			System.out.println("alpha: " + gibbsSampler.alpha);
+			System.out.println("beta_k: " + Arrays.toString(gibbsSampler.beta));
+
 		}
 	}
 
 	/**
 	 * Find top 25 tokens in topic's distribution
-	 * 
+	 *
 	 * @param topic
 	 */
 	public static void printTop25(final Topic topic,
@@ -166,7 +175,7 @@ public class TopicSum {
 
 	/**
 	 * Get all of the sentences from a cluster
-	 * 
+	 *
 	 * @param c
 	 *            the cluster
 	 * @return the sentences from the cluster
@@ -188,7 +197,7 @@ public class TopicSum {
 	/**
 	 * Standard sentence selection as described in Haghighi and Vanderwende
 	 * paper
-	 * 
+	 *
 	 * @param c
 	 *            cluster to summarize
 	 * @param phic
@@ -196,7 +205,7 @@ public class TopicSum {
 	 * @param phib
 	 *            distribution of background words
 	 * @return the summary of the cluster
-	 * 
+	 *
 	 * @deprecated redundant for source code
 	 */
 	@Deprecated
@@ -254,7 +263,7 @@ public class TopicSum {
 	/**
 	 * @param summarySents
 	 * @return
-	 * 
+	 *
 	 * @deprecated redundant for source code
 	 */
 	@Deprecated
