@@ -9,18 +9,17 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
+import java.util.Stack;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.DirectoryFileFilter;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.eclipse.jdt.core.dom.ASTVisitor;
-import org.eclipse.jdt.core.dom.CastExpression;
 import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.eclipse.jdt.core.dom.EnumDeclaration;
 import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.ImportDeclaration;
+import org.eclipse.jdt.core.dom.ParameterizedType;
 import org.eclipse.jdt.core.dom.SimpleType;
 import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
@@ -37,7 +36,7 @@ import com.google.common.collect.Sets;
  *
  * Uses fully qualified names.
  *
- * TODO: Still we can infer hierarchies from assignments
+ * TODO: Still we can infer hierarchies from assignments and downcasting.
  *
  * @author Miltos Allamanis <m.allamanis@ed.ac.uk>
  *
@@ -53,43 +52,72 @@ public class JavaTypeHierarchyExtractor {
 		private final Set<Pair<String, String>> parentChildRelationships = Sets
 				.newHashSet();
 
+		Stack<String> className = new Stack<String>();
+
 		private void addTypes(String parent, String child) {
+			if (parent.contains("<")) {
+				// Manually compute erasure.
+				parent = parent.substring(0, parent.indexOf("<"))
+						+ parent.substring(parent.indexOf(">") + 1);
+			}
+			if (child.contains("<")) {
+				// Manually compute erasure.
+				child = child.substring(0, child.indexOf("<"))
+						+ child.substring(child.indexOf(">") + 1);
+			}
+
 			if (!child.contains(".") && importedNames.containsKey(child)) {
 				child = importedNames.get(child);
+			} else if (!child.contains(".")) {
+				child = currentPackageName + "." + child;
 			}
 			if (!parent.contains(".") && importedNames.containsKey(parent)) {
 				parent = importedNames.get(parent);
+			} else if (!parent.contains(".")) {
+				parent = currentPackageName + "." + parent;
 			}
 			final Pair<String, String> typeRelationship = Pair.create(parent,
 					child);
 			parentChildRelationships.add(typeRelationship);
 		}
 
-		private void getTypeBindingParents(final ITypeBinding binding) {
-			if (binding.getSuperclass() == null) {
-				return;
-			}
-			addTypes(binding.getSuperclass().getQualifiedName(),
-					binding.getQualifiedName());
-			getTypeBindingParents(binding.getSuperclass());
-
-			for (final ITypeBinding iface : binding.getInterfaces()) {
-				addTypes(iface.getQualifiedName(), binding.getQualifiedName());
-				getTypeBindingParents(iface);
-			}
-		}
-
 		/*
 		 * (non-Javadoc)
-		 * 
+		 *
 		 * @see
-		 * org.eclipse.jdt.core.dom.ASTVisitor#visit(org.eclipse.jdt.core.dom
-		 * .CastExpression)
+		 * org.eclipse.jdt.core.dom.ASTVisitor#endVisit(org.eclipse.jdt.core
+		 * .dom.TypeDeclaration)
 		 */
 		@Override
-		public boolean visit(final CastExpression node) {
-			node.getType();
-			return super.visit(node);
+		public void endVisit(final TypeDeclaration node) {
+			className.pop();
+			super.endVisit(node);
+		}
+
+		private void getTypeBindingParents(ITypeBinding binding) {
+			if (binding.isParameterizedType()) {
+				binding = binding.getErasure();
+			}
+			final String bindingName = binding.isRecovered() ? binding
+					.getName() : binding.getQualifiedName();
+			final ITypeBinding superclassBinding = binding.getSuperclass();
+			if (superclassBinding != null) {
+				addTypes(
+						superclassBinding.isRecovered() ? superclassBinding.getName()
+								: superclassBinding.getQualifiedName(),
+						bindingName);
+				getTypeBindingParents(superclassBinding);
+			}
+
+			for (ITypeBinding iface : binding.getInterfaces()) {
+				if (iface.isParameterizedType()) {
+					iface = iface.getErasure();
+				}
+				addTypes(
+						iface.isRecovered() ? iface.getName()
+								: iface.getQualifiedName(), bindingName);
+				getTypeBindingParents(iface);
+			}
 		}
 
 		/*
@@ -112,29 +140,6 @@ public class JavaTypeHierarchyExtractor {
 					importedNames.put(fqn.substring(fqn.lastIndexOf('.') + 1),
 							fqn);
 				}
-			}
-
-			for (final Object type : node.types()) {
-				if (type instanceof TypeDeclaration) {
-					final TypeDeclaration t = (TypeDeclaration) type;
-
-					for (final Object supType : t.superInterfaceTypes()) {
-						final Type superType = (Type) supType;
-						addTypes(superType.resolveBinding().getQualifiedName(),
-								currentPackageName + "." + t.getName());
-					}
-
-					if (t.getSuperclassType() != null) {
-						addTypes(t.getSuperclassType().resolveBinding()
-								.getQualifiedName(), currentPackageName + "."
-										+ t.getName());
-					}
-
-				} else if (type instanceof EnumDeclaration) {
-					final EnumDeclaration enumType = (EnumDeclaration) type;
-					// TODO
-				}
-
 			}
 			return true;
 		}
@@ -166,6 +171,55 @@ public class JavaTypeHierarchyExtractor {
 			getTypeBindingParents(node.resolveBinding());
 			return super.visit(node);
 		}
+
+		/*
+		 * (non-Javadoc)
+		 *
+		 * @see
+		 * org.eclipse.jdt.core.dom.ASTVisitor#visit(org.eclipse.jdt.core.dom
+		 * .TypeDeclaration)
+		 */
+		@Override
+		public boolean visit(final TypeDeclaration node) {
+			for (final Object supType : node.superInterfaceTypes()) {
+				Type superType = (Type) supType;
+				if (superType.isParameterizedType()) {
+					superType = ((ParameterizedType) superType).getType();
+				}
+				final String qName = superType.resolveBinding().getErasure()
+						.getQualifiedName();
+				if (className.isEmpty()) {
+					addTypes(qName, currentPackageName + "." + node.getName());
+				} else {
+					addTypes(qName, className.peek() + "." + node.getName());
+				}
+			}
+
+			Type superclassType = node.getSuperclassType();
+			if (superclassType != null) {
+				if (superclassType.isParameterizedType()) {
+					superclassType = ((ParameterizedType) superclassType)
+							.getType();
+				}
+				addTypes(superclassType.resolveBinding().getQualifiedName(),
+						currentPackageName + "." + node.getName());
+			}
+
+			if (className.isEmpty()) {
+				className.push(currentPackageName + "."
+						+ node.getName().getIdentifier());
+				importedNames.put(node.getName().getIdentifier(),
+						currentPackageName + "."
+								+ node.getName().getIdentifier());
+			} else {
+				className.push(className.peek() + "."
+						+ node.getName().getIdentifier());
+				importedNames
+						.put(node.getName().getIdentifier(), className.peek()
+								+ "." + node.getName().getIdentifier());
+			}
+			return true;
+		}
 	}
 
 	/**
@@ -194,11 +248,8 @@ public class JavaTypeHierarchyExtractor {
 	private final ClassHierarchy hierarchy = new ClassHierarchy();
 
 	public void addFilesToCorpus(final Collection<File> files) {
-		final Set<String> srcPaths = files.stream()
-				.map(f -> f.getAbsolutePath()).collect(Collectors.toSet());
-
 		files.parallelStream()
-				.map(f -> getParentTypeRelationshipsFrom(f, srcPaths))
+				.map(f -> getParentTypeRelationshipsFrom(f))
 				.flatMap(rel -> rel.stream())
 				.sequential()
 				.forEach(
@@ -206,8 +257,12 @@ public class JavaTypeHierarchyExtractor {
 
 	}
 
+	public ClassHierarchy getHierarchy() {
+		return hierarchy;
+	}
+
 	private Collection<Pair<String, String>> getParentTypeRelationshipsFrom(
-			final File file, final Set<String> srcPaths) {
+			final File file) {
 		final JavaASTExtractor ex = new JavaASTExtractor(true);
 		try {
 			final CompilationUnit ast = ex.getAST(file);

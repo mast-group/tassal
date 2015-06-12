@@ -3,9 +3,12 @@ package codemining.languagetools;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
@@ -92,6 +95,12 @@ public class ClassHierarchy implements Serializable {
 					.add(implementingType));
 		}
 
+		public Collection<Type> getImplementingTypesClosure() {
+			return new ImmutableList.Builder<Type>()
+					.addAll(implementingTypesClosure).addAll(implementingTypes)
+					.build();
+		}
+
 		@Override
 		public String toString() {
 			final StringBuilder sb = new StringBuilder();
@@ -126,6 +135,13 @@ public class ClassHierarchy implements Serializable {
 		final Type parentType = getTypeOrNew(parentTypeFqn);
 		childType.addImplementingType(parentType);
 		parentType.addChildType(childType);
+	}
+
+	public Optional<Type> getTypeForName(final String fqName) {
+		if (nameToType.containsKey(fqName)) {
+			return Optional.of(nameToType.get(fqName));
+		}
+		return Optional.absent();
 	}
 
 	/**

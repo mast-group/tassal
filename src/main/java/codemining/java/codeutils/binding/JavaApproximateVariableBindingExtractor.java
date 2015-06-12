@@ -3,6 +3,7 @@
  */
 package codemining.java.codeutils.binding;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -18,6 +19,7 @@ import org.eclipse.jdt.core.dom.VariableDeclarationExpression;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
 
+import codemining.java.codeutils.binding.JavaVariableFeatureExtractor.AvailableFeatures;
 import codemining.java.tokenizers.JavaTokenizer;
 import codemining.languagetools.ITokenizer;
 
@@ -167,6 +169,8 @@ public class JavaApproximateVariableBindingExtractor extends
 		}
 	}
 
+	private final JavaVariableFeatureExtractor featureExtractor = new JavaVariableFeatureExtractor();
+
 	public JavaApproximateVariableBindingExtractor() {
 		super(new JavaTokenizer());
 	}
@@ -176,8 +180,14 @@ public class JavaApproximateVariableBindingExtractor extends
 	}
 
 	@Override
+	public Set<?> getAvailableFeatures() {
+		return Sets.newHashSet(JavaVariableFeatureExtractor.AvailableFeatures
+				.values());
+	}
+
+	@Override
 	protected Set<String> getFeatures(final Set<ASTNode> boundNodes) {
-		return JavaVariableFeatureExtractor.variableFeatures(boundNodes);
+		return featureExtractor.variableFeatures(boundNodes);
 	}
 
 	@Override
@@ -193,5 +203,11 @@ public class JavaApproximateVariableBindingExtractor extends
 			nameBindings.add(boundNodes);
 		}
 		return nameBindings;
+	}
+
+	@Override
+	public void setActiveFeatures(final Set<?> activeFeatures) {
+		featureExtractor
+				.setActiveFeatures((Collection<AvailableFeatures>) activeFeatures);
 	}
 }

@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 import java.util.SortedMap;
+import java.util.function.Predicate;
 
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jdt.core.dom.ASTNode;
@@ -120,7 +121,14 @@ public abstract class AbstractJavaNameBindingsExtractor extends
 			throws IOException {
 		final JavaASTExtractor ex = createExtractor();
 		return getResolvedSourceCode(FileUtils.readFileToString(f),
-				getNameBindings(ex.getAST(f)));
+				getNameBindings(ex.getAST(f)), f.getAbsolutePath());
+	}
+
+	public ResolvedSourceCode getResolvedSourceCode(final File f,
+			final Predicate<ASTNode> includeNode) throws IOException {
+		final JavaASTExtractor ex = createExtractor();
+		return getResolvedSourceCode(FileUtils.readFileToString(f),
+				getNameBindings(ex.getAST(f)), f.getAbsolutePath(), includeNode);
 	}
 
 	@Override
@@ -128,14 +136,22 @@ public abstract class AbstractJavaNameBindingsExtractor extends
 		final JavaASTExtractor ex = createExtractor();
 		try {
 			return getResolvedSourceCode(code,
-					getNameBindings(ex.getBestEffortAstNode(code)));
+					getNameBindings(ex.getBestEffortAstNode(code)),
+					"UnkownSourceFile");
 		} catch (final Exception e) {
 			throw new IllegalArgumentException(e);
 		}
 	}
 
 	public ResolvedSourceCode getResolvedSourceCode(final String sourceCode,
-			final Set<Set<ASTNode>> nodeBindings) {
+			final Set<Set<ASTNode>> nodeBindings, final String filename) {
+		return getResolvedSourceCode(sourceCode, nodeBindings, filename,
+				node -> true);
+	}
+
+	public ResolvedSourceCode getResolvedSourceCode(final String sourceCode,
+			final Set<Set<ASTNode>> nodeBindings, final String filename,
+			final Predicate<ASTNode> includeNode) {
 		final SortedMap<Integer, String> tokenPositions = tokenizer
 				.tokenListWithPos(sourceCode.toCharArray());
 		final SortedMap<Integer, Integer> positionToIndex = getTokenIndexForPostion(tokenPositions);
@@ -145,7 +161,8 @@ public abstract class AbstractJavaNameBindingsExtractor extends
 				.create();
 
 		for (final Set<ASTNode> boundName : nodeBindings) {
-			if (boundName.isEmpty()) {
+			if (boundName.isEmpty()
+					|| boundName.stream().noneMatch(includeNode)) {
 				continue;
 			}
 			final List<Integer> boundPositions = Lists.newArrayList();
@@ -160,7 +177,7 @@ public abstract class AbstractJavaNameBindingsExtractor extends
 							tokens, getFeatures(boundName)));
 		}
 
-		return new ResolvedSourceCode(tokens, bindings);
+		return new ResolvedSourceCode(filename, tokens, bindings);
 	}
 
 	/**

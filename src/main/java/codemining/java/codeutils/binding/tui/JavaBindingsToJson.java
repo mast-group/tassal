@@ -18,9 +18,11 @@ import org.apache.commons.lang.exception.ExceptionUtils;
 
 import codemining.java.codeutils.binding.AbstractJavaNameBindingsExtractor;
 import codemining.java.codeutils.binding.JavaApproximateVariableBindingExtractor;
-import codemining.java.codeutils.binding.JavaMethodBindingExtractor;
-import codemining.java.codeutils.binding.JavaTypeBindingExtractor;
+import codemining.java.codeutils.binding.JavaMethodDeclarationBindingExtractor;
+import codemining.java.codeutils.binding.JavaMethodInvocationBindingExtractor;
+import codemining.java.codeutils.binding.JavaTypeDeclarationBindingExtractor;
 import codemining.java.tokenizers.JavaTokenizer;
+import codemining.java.tokenizers.JavaTypeTokenizer;
 import codemining.languagetools.bindings.ResolvedSourceCode;
 import codemining.languagetools.bindings.TokenNameBinding;
 
@@ -44,13 +46,15 @@ public class JavaBindingsToJson {
 			return new SerializableResolvedSourceCode(rsc);
 		}
 
+		public final String provenance;
+
 		public final List<String> codeTokens;
 
 		public final List<List<Integer>> boundVariables;
 
 		public final List<List<String>> boundVariableFeatures;
 
-		private SerializableResolvedSourceCode(final ResolvedSourceCode rsc) {
+		protected SerializableResolvedSourceCode(final ResolvedSourceCode rsc) {
 			codeTokens = rsc.codeTokens;
 			boundVariables = Lists.newArrayList();
 			boundVariableFeatures = Lists.newArrayList();
@@ -59,17 +63,87 @@ public class JavaBindingsToJson {
 				boundVariableFeatures.add(new ArrayList<String>(
 						binding.features));
 			}
+			provenance = rsc.name;
 		}
+	}
+
+	/**
+	 * Extract the bindings from the input folder to the output file, using the
+	 * bindingExtractor.
+	 *
+	 * @param inputFolder
+	 * @param outputFile
+	 * @param bindingExtractor
+	 * @throws IOException
+	 * @throws JsonIOException
+	 */
+	public static void extractBindings(final File inputFolder,
+			final File outputFile,
+			final AbstractJavaNameBindingsExtractor bindingExtractor)
+			throws IOException, JsonIOException {
+		final Collection<File> allFiles = FileUtils
+				.listFiles(inputFolder, JavaTokenizer.javaCodeFileFilter,
+						DirectoryFileFilter.DIRECTORY);
+		final List<SerializableResolvedSourceCode> resolvedCode = allFiles
+				.parallelStream()
+				.map(f -> getResolvedCode(f, bindingExtractor))
+				.filter(r -> r != null)
+				.map(r -> SerializableResolvedSourceCode
+						.fromResolvedSourceCode(r))
+				.filter(s -> !s.boundVariables.isEmpty())
+				.collect(Collectors.toList());
+
+		final FileWriter writer = new FileWriter(outputFile);
+		try {
+			final Gson gson = new Gson();
+			gson.toJson(resolvedCode, writer);
+		} finally {
+			writer.close();
+		}
+	}
+
+	/**
+	 * @param bindingExtractor
+	 * @param extractorType
+	 * @param inputFolder
+	 * @return
+	 * @throws IllegalArgumentException
+	 */
+	public static AbstractJavaNameBindingsExtractor getExtractorForName(
+			final String extractorType, final File inputFolder)
+			throws IllegalArgumentException {
+		final AbstractJavaNameBindingsExtractor bindingExtractor;
+		if (extractorType.equals("variables")) {
+			bindingExtractor = new JavaApproximateVariableBindingExtractor();
+		} else if (extractorType.equals("methodinvocations")) {
+			bindingExtractor = new JavaMethodInvocationBindingExtractor();
+		} else if (extractorType.equals("methodinvocations_typegram")) {
+			bindingExtractor = new JavaMethodInvocationBindingExtractor(
+					new JavaTypeTokenizer());
+		} else if (extractorType.equals("methoddeclarations")) {
+			bindingExtractor = new JavaMethodDeclarationBindingExtractor();
+		} else if (extractorType.equals("methoddeclarations_nooverride")) {
+			bindingExtractor = new JavaMethodDeclarationBindingExtractor(false,
+					inputFolder);
+		} else if (extractorType.equals("methoddeclarations_typegram")) {
+			bindingExtractor = new JavaMethodDeclarationBindingExtractor(
+					new JavaTypeTokenizer());
+		} else if (extractorType.equals("types")) {
+			bindingExtractor = new JavaTypeDeclarationBindingExtractor();
+		} else {
+			throw new IllegalArgumentException("Unrecognized option "
+					+ extractorType);
+		}
+		return bindingExtractor;
 	}
 
 	public static ResolvedSourceCode getResolvedCode(final File f,
 			final AbstractJavaNameBindingsExtractor extractor) {
 		try {
 			return extractor.getResolvedSourceCode(f);
-		} catch (final IOException e) {
-			LOGGER.warning(ExceptionUtils.getFullStackTrace(e));
-		} finally {
-
+		} catch (final Throwable t) {
+			LOGGER.warning("Error for file " + f + ": "
+					+ ExceptionUtils.getFullStackTrace(t));
 		}
 		return null;
 	}
@@ -83,48 +157,25 @@ public class JavaBindingsToJson {
 			IOException {
 		if (args.length != 3) {
 			System.err
-					.println("Usage <inputFolder> variables|methods|types <outputFile>");
+					.println("Usage <inputFolder> variables|methodinvocations|"
+							+ "methodinvocations_typegram|methoddeclarations|methoddeclarations_nooverride"
+							+ "methoddeclarations_typegram|types <outputFile>");
 			System.exit(-1);
 		}
 
-		final AbstractJavaNameBindingsExtractor ex;
-		if (args[1].equals("variables")) {
-			ex = new JavaApproximateVariableBindingExtractor();
-		} else if (args[1].equals("methods")) {
-			ex = new JavaMethodBindingExtractor();
-		} else if (args[1].equals("types")) {
-			ex = new JavaTypeBindingExtractor();
-		} else {
-			throw new IllegalArgumentException("Unrecognized option " + args[1]);
-		}
-		final Collection<File> allFiles = FileUtils.listFiles(
-				new File(args[0]), JavaTokenizer.javaCodeFileFilter,
-				DirectoryFileFilter.DIRECTORY);
-		final List<SerializableResolvedSourceCode> resolvedCode = allFiles
-				.parallelStream()
-				.map(f -> getResolvedCode(f, ex))
-				.filter(r -> r != null)
-				.map(r -> SerializableResolvedSourceCode
-						.fromResolvedSourceCode(r))
-				.collect(Collectors.toList());
+		final File inputFolder = new File(args[0]);
+		final File outputFile = new File(args[2]);
+		final AbstractJavaNameBindingsExtractor bindingExtractor = getExtractorForName(
+				args[1], inputFolder);
 
-		final FileWriter writer = new FileWriter(new File(args[2]));
-		try {
-			final Gson gson = new Gson();
-			gson.toJson(resolvedCode, writer);
-		} finally {
-			writer.close();
-		}
+		extractBindings(inputFolder, outputFile, bindingExtractor);
 	}
 
 	private static final Logger LOGGER = Logger
 			.getLogger(JavaBindingsToJson.class.getName());
 
-	/**
-	 *
-	 */
-	public JavaBindingsToJson() {
-		// TODO Auto-generated constructor stub
+	private JavaBindingsToJson() {
+		// No instantations
 	}
 
 }
