@@ -59,7 +59,7 @@ public class FoldSourceFile {
 	}
 
 	/**
-	 * Fold given source file and return list of folded LOC
+	 * Fold given source file and return folded file
 	 *
 	 * @param workingDir
 	 *            working directory where the topic has created necessary files
@@ -94,7 +94,7 @@ public class FoldSourceFile {
 
 		// Load Topic Model
 		System.out.println("Deserializing the model...");
-		set.sampler = GibbsSampler.readCorpus(workingDir
+		final GibbsSampler sampler = GibbsSampler.readCorpus(workingDir
 				+ "TopicSum/Source/SamplerState.ser");
 
 		// Generate AST
@@ -102,7 +102,7 @@ public class FoldSourceFile {
 
 		// Create folded tree
 		final ASTVisitors.TreeCreatorVisitor tcv = new TreeCreatorVisitor();
-		tcv.process(cu, file, set);
+		tcv.process(cu, file, null, sampler, set);
 
 		// Run selected algorithm on folded tree and return regions to unfold
 		final ArrayList<Range<Integer>> unfoldedFolds = UnfoldAlgorithms

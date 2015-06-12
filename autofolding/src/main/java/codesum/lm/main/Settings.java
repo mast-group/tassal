@@ -1,7 +1,5 @@
 package codesum.lm.main;
 
-import codesum.lm.topicsum.GibbsSampler;
-
 /**
  * Class to hold settings for the code folder
  *
@@ -33,7 +31,6 @@ public class Settings {
 	public String curProj;
 	public String profitType;
 	public int compressionRatio;
-	public GibbsSampler sampler;
 
 	// Paths and projects
 	public final String baseFolder;

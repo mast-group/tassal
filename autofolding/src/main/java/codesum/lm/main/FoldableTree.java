@@ -10,6 +10,9 @@ import org.apache.commons.io.FilenameUtils;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 
+import codesum.lm.topicsum.GibbsSampler;
+import codesum.lm.vsm.TokenVector;
+
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multiset;
@@ -24,15 +27,20 @@ public class FoldableTree {
 
 	private final CompilationUnit cu;
 	private final File file;
+	private final GibbsSampler sampler;
+	private final TokenVector fileVec;
 	private FoldableNode root;
 	private double budget;
 	private final Settings set;
 	private int nodeCount;
 
 	public FoldableTree(final CompilationUnit unit, final File fl,
+			final TokenVector fv, final GibbsSampler smpl,
 			final Settings settings) {
 		cu = unit;
 		file = fl;
+		fileVec = fv;
+		sampler = smpl;
 		set = settings;
 		nodeCount = 0;
 	}
@@ -336,6 +344,72 @@ public class FoldableTree {
 		}
 	}
 
+	/** Conditional Greedy probability profits for VSM */
+	public class GreedyVSMOptionsOp implements GreedyNodeOp {
+
+		// Containers for unfolded terms
+		private final Multiset<String> unfoldedTerms = HashMultiset.create();
+
+		public void addNodeToUnfolded(final FoldableNode node) {
+			unfoldedTerms.addAll(node.getTermFreqs());
+		}
+
+		@Override
+		public int performOp(final FoldableNode fn, final int prev,
+				final HashMap<FoldableNode, Option> options) {
+
+			// If node is folded, calculate profit
+			double profit = 0;
+			if (!fn.isUnfolded) {
+
+				// Calculate tf-idf weights
+				final String curFile = FilenameUtils
+						.getBaseName(file.getName());
+				final TokenVector tv = new TokenVector(unfoldedTerms);
+
+				// Get VSM profit
+				if (set.profitType.equals("CSimFile"))
+					profit = tv.cosSim(fileVec);
+				else
+					throw new RuntimeException("Incorrect profit function!");
+
+				if (profit < 0) {
+					System.out.println("Profit: " + profit);
+					throw new RuntimeException("Profit must be positive!");
+				}
+
+				// If node has no terms, never unfold it
+				if (fn.termFreqs.isEmpty())
+					profit = Double.NEGATIVE_INFINITY;
+
+			}
+
+			// If always folding comment/import nodes, their cost is infinite
+			// if (set.noCommentsImports
+			// && (fn.node.getNodeType() == ASTNode.BLOCK_COMMENT
+			// || fn.node.getNodeType() == ASTNode.LINE_COMMENT || fn.node
+			// .getNodeType() == ASTNode.IMPORT_DECLARATION)) {
+			// options.put(fn, new Option(null, Integer.MAX_VALUE, profit));
+			// return 0; // Ignore for accumulated cost (not that it
+			// // matters)
+			// }
+
+			// If node is unfolded, cost is zero
+			if (fn.isUnfolded) {
+				options.put(fn, new Option(0, profit));
+				return 0; // Ignore for accumulated cost
+			}
+
+			// Else cost is node LOC minus child nodes LOC
+			final int cost = prev + fn.getUniqueNodeCost();
+			if (cost < 0)
+				throw new RuntimeException("Cost must be positive!");
+			options.put(fn, new Option(cost, profit));
+			return cost; // Return accumulated cost
+
+		}
+	}
+
 	/** Conditional Greedy probability profits for TopicSum */
 	public class GreedyTopicSumOptionsOp implements GreedyNodeOp {
 
@@ -374,30 +448,30 @@ public class FoldableTree {
 				final String curFile = FilenameUtils
 						.getBaseName(file.getName());
 				if (set.profitType.equals("Surprising")) {
-					profit = set.sampler.getSurpriseTokens(unfoldedTerms,
+					profit = sampler.getSurpriseTokens(unfoldedTerms,
 							set.curProj, curFile, fn.nodeID);
 				} else if (set.profitType.equals("CondSurprising")) {
 					final ArrayList<String> fileLessSummaryTerms = Lists
 							.newArrayList(fileTerms);
 					fileLessSummaryTerms.removeAll(unfoldedTerms);
-					profit = set.sampler.getMinusConditionalSurprise(
+					profit = sampler.getMinusConditionalSurprise(
 							fileLessSummaryTerms, unfoldedTerms, set.curProj,
 							curFile, fn.nodeID);
 				} else if (set.profitType.equals("CondSurprising2")) {
 					final ArrayList<String> nodeTerms = Lists.newArrayList();
 					nodeTerms.addAll(fn.termFreqs);
-					profit = set.sampler.getConditionalSurprise(nodeTerms,
+					profit = sampler.getConditionalSurprise(nodeTerms,
 							unfoldedTerms, set.curProj, curFile, fn.nodeID);
 				} else if (set.profitType.equals("Likely")) {
-					profit = set.sampler.getShiftedLogProbTokens(0.0,
+					profit = sampler.getShiftedLogProbTokens(0.0,
 							unfoldedTerms, set.curProj, curFile, fn.nodeID);
 				} else if (set.profitType.matches("Specific.*")) {
-					profit = set.sampler.getShiftedSpecificLogProbTokens(0.0,
+					profit = sampler.getShiftedSpecificLogProbTokens(0.0,
 							unfoldedTerms, set.profitType, set.curProj,
 							curFile, fn.nodeID);
 				} else if (set.profitType.matches("KLDiv.*")) {
 					profit = -1
-							* set.sampler.getKLDiv(set.profitType, set.curProj,
+							* sampler.getKLDiv(set.profitType, set.curProj,
 									curFile, unfoldedNodeIDs);
 				} else if (set.profitType.equals("NoContentModel"))
 					profit = 1;

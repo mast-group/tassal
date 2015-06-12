@@ -32,17 +32,16 @@ public class CodeUtils {
 		// For all projects
 		for (final String curProj : set.projects) {
 
-			set.curProj = curProj;
-			System.out.println("\n===== Project " + set.curProj);
+			System.out.println("\n===== Project " + curProj);
 
 			// Create output folder
 			final String outFolder = set.baseFolder + "TopicSum/Source/"
-					+ set.curProj + "/";
+					+ curProj + "/";
 			(new File(outFolder)).mkdirs();
 
 			// Get all java files in source folder
 			final List<File> files = (List<File>) FileUtils.listFiles(new File(
-					set.projectsFolder + set.curProj + "/"),
+					set.projectsFolder + curProj + "/"),
 					new String[] { "java" }, true);
 
 			int count = 0;
@@ -64,7 +63,7 @@ public class CodeUtils {
 				// Create folded tree and populate nodes with term vectors
 				final TreeCreatorVisitor tcv = new TreeCreatorVisitor();
 
-				tcv.process(getAST(file), file, set);
+				tcv.process(getAST(file), file, null, null, set);
 
 				// Save foldable node tokens ordered by nodeID
 				for (int nodeID = 0; nodeID < tcv.getTree().getNodeCount(); nodeID++) {
@@ -226,4 +225,5 @@ public class CodeUtils {
 	public static ArrayList<Integer> range(final int start, final int stop) {
 		return range(start, stop, 1);
 	}
+
 }

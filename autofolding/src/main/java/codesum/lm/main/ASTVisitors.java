@@ -27,6 +27,8 @@ import org.eclipse.jdt.core.dom.TagElement;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 
 import codesum.lm.main.FoldableTree.FoldableNode;
+import codesum.lm.topicsum.GibbsSampler;
+import codesum.lm.vsm.TokenVector;
 
 import com.google.common.collect.DiscreteDomain;
 import com.google.common.collect.HashBasedTable;
@@ -370,7 +372,7 @@ public class ASTVisitors {
 		}
 
 		public void process(final CompilationUnit unit, final File file,
-				final Settings set) {
+				final TokenVector fv, final GibbsSampler smp, final Settings set) {
 
 			// Read source file to string
 			fileString = CodeUtils.readFileString(file);
@@ -381,7 +383,7 @@ public class ASTVisitors {
 			foldLineComments = set.foldLineComments;
 
 			// Create foldable tree
-			tree = new FoldableTree(unit, file, set);
+			tree = new FoldableTree(unit, file, fv, smp, set);
 			cu = unit;
 			unit.accept(this);
 

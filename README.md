@@ -8,10 +8,26 @@ This is an implementation of the code summarizer from our paper:
 J. Fowkes, R. Ranca, M. Allamanis, M. Lapata and C. Sutton. arXiv preprint 1403.4503, 2014.   
 http://arxiv.org/abs/1403.4503
 
-Installation in Eclipse
------------------------
+Installation 
+------------
+
+#### Installing in Eclipse
 
 Simply import as a maven project into [Eclipse](https://eclipse.org/) using the *File -> Import...* menu option (note that this requires [m2eclipse](http://eclipse.org/m2e/)). 
+
+It's also possible to export a runnable jar from Eclipse using the *File -> Export...* menu option.
+
+#### Compiling a Runnable Jar
+
+To compile a standalone runnable jar, simply run
+
+```
+mvn package
+```
+
+in the main tassal directory (note that this requires [maven](https://maven.apache.org/)).
+
+This will create the standalone runnable jar ```tassal-1.1-SNAPSHOT.jar``` in the tassal/target subdirectory.
 
 Running TASSAL
 --------------
@@ -38,16 +54,15 @@ The *codesum.lm.tui* package contains both the Java and command line interface.
 
 See the individual file javadocs for information on the Java interface.
 
-You can set command line arguments for the TASSAL interface in Eclipse using the *Run Configurations...* menu option. It's also possible to export a runnable jar using the *File -> Export...* menu option.
+In Eclipse you can set command line arguments for the TASSAL interface using the *Run Configurations...* menu option. 
 
-Example Usage
--------------
+#### Example Usage
 
 A complete example using the command line interface on a runnable jar.
 
 First clone the ActionBarSherlock project into /tmp/java_projects/
 
-  ```sh
+  ```sh 
   $ mkdir /tmp/java_projects/
   $ cd /tmp/java_projects/
   $ git clone https://github.com/JakeWharton/ActionBarSherlock.git
@@ -55,16 +70,56 @@ First clone the ActionBarSherlock project into /tmp/java_projects/
 
 Now you can train the topic model on the java projects in /tmp/java_projects/
 
-  ```sh
-$ java -cp tassal.jar codesum.lm.tui.TrainTopicModel   
-  -d /tmp/java_projects/  -w /tmp/ -i 100
+  ```sh 
+  $ java -cp tassal-1.1-SNAPSHOT.jar codesum.lm.tui.TrainTopicModel   
+   -d /tmp/java_projects/  -w /tmp/ -i 100 
   ```
 
 This trains the topic model for 100 iterations and outputs the model to /tmp/. We can then fold a specific file 
 
-  ```sh
- $ java -cp tassal.jar codesum.lm.tui.FoldSourceFile     
+  ```sh 
+  $ java -cp tassal-1.1-SNAPSHOT.jar codesum.lm.tui.FoldSourceFile     
    -w /tmp/  -c 50 -p ActionBarSherlock 
+   -f /tmp/java_projects/ActionBarSherlock/actionbarsherlock/src/com/actionbarsherlock/app/SherlockFragment.java 
+   -o /tmp/SherlockFragmentFolded.java 
+  ```
+
+which will output the folded file to /tmp/SherlockFragmentFolded.java. 
+
+Running TASSAL VSM
+------------------
+
+The *codesum.lm.tui* package contains both the Java and command line interface.
+
+#### Autofolding a source file
+
+*codesum.lm.tui.FoldSourceFileVSM* folds a specified source file. It has the following command line options:
+
+* **-f**    souce file to autofold
+* **-c**    desired compression ratio for the file
+* **-o**   (optional)  where to output the folded file
+
+See the individual file javadocs for information on the Java interface.
+
+In Eclipse you can set command line arguments for the TASSAL interface using the *Run Configurations...* menu option. 
+
+#### Example Usage
+
+A complete example using the command line interface on a runnable jar.
+
+First clone the ActionBarSherlock project into /tmp/java_projects/
+
+  ```sh 
+  $ mkdir /tmp/java_projects/
+  $ cd /tmp/java_projects/
+  $ git clone https://github.com/JakeWharton/ActionBarSherlock.git 
+  ```
+
+We can then fold a specific file 
+
+  ```sh 
+  $ java -cp tassal-1.1-SNAPSHOT.jar codesum.lm.tui.FoldSourceFileVSM     
+   -c 50
    -f /tmp/java_projects/ActionBarSherlock/actionbarsherlock/src/com/actionbarsherlock/app/SherlockFragment.java 
    -o /tmp/SherlockFragmentFolded.java 
   ```

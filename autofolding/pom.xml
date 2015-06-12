@@ -2,10 +2,10 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>code-summarization</groupId>
-  <artifactId>tassal-main</artifactId>
-  <packaging>pom</packaging>
+  <artifactId>autofolding</artifactId>
+  <packaging>jar</packaging>
   <version>1.1-SNAPSHOT</version>
-  <name>TASSAL</name>
+  <name>Autofolding for Source Code Summarization</name>
 
   <properties>
     <findbugs.version>3.0.0</findbugs.version>
@@ -43,19 +43,7 @@
      </plugins>
   </build>
   
-  <modules>
-    <module>codemining-utils</module>
-    <module>codemining-core</module>
-    <module>autofolding</module>
-    <module>tassal</module>
-  </modules>
-  
   <dependencies>
-    <dependency>
-      <groupId>code-summarization</groupId>
-      <artifactId>autofolding</artifactId>
-      <version>${project.version}</version>
-    </dependency>
     <dependency>
       <groupId>codemining</groupId>
       <artifactId>codemining-utils</artifactId>

@@ -9,6 +9,7 @@ import org.eclipse.jdt.core.dom.ASTNode;
 import codesum.lm.main.FoldableTree.FoldableNode;
 import codesum.lm.main.FoldableTree.GreedyNodeOp;
 import codesum.lm.main.FoldableTree.GreedyTopicSumOptionsOp;
+import codesum.lm.main.FoldableTree.GreedyVSMOptionsOp;
 import codesum.lm.main.FoldableTree.Option;
 
 import com.google.common.collect.Lists;
@@ -187,6 +188,24 @@ public class UnfoldAlgorithms {
 		@Override
 		protected void addNodeToUnfolded(final FoldableNode node) {
 			topicSumOp.addNodeToUnfolded(node);
+		}
+
+	}
+
+	/** GreedyVSMAlgorithm: Unfold node with largest profit per unit cost */
+	public static class GreedyVSMAlgorithm extends GreedyTopicSumAlgorithm {
+
+		private GreedyVSMOptionsOp optionsOp;
+
+		@Override
+		protected GreedyNodeOp getOptionsOP(final FoldableTree tree) {
+			optionsOp = tree.new GreedyVSMOptionsOp();
+			return optionsOp;
+		}
+
+		@Override
+		protected void addNodeToUnfolded(final FoldableNode node) {
+			optionsOp.addNodeToUnfolded(node);
 		}
 
 	}
