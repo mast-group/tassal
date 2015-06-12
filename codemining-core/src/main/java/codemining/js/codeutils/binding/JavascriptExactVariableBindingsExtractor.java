@@ -1,15 +1,17 @@
 /**
- * 
+ *
  */
 package codemining.js.codeutils.binding;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.apache.commons.lang.NotImplementedException;
 import org.eclipse.wst.jsdt.core.dom.*;
 
 import codemining.js.codeutils.JavascriptASTExtractor;
@@ -22,9 +24,9 @@ import com.google.common.collect.Sets;
 /**
  * Retrieve the variable bindings, given an ASTNode. This finds exact bindings
  * to the detriment of recall. Partial code snippets are not supported.
- * 
+ *
  * @author Miltos Allamanis <m.allamanis@ed.ac.uk>
- * 
+ *
  */
 public class JavascriptExactVariableBindingsExtractor extends
 		AbstractJavascriptNameBindingsExtractor {
@@ -32,7 +34,7 @@ public class JavascriptExactVariableBindingsExtractor extends
 	/**
 	 * This class looks for declarations of variables and the references to
 	 * them.
-	 * 
+	 *
 	 */
 	private static class VariableBindingFinder extends ASTVisitor {
 		/**
@@ -77,7 +79,7 @@ public class JavascriptExactVariableBindingsExtractor extends
 		 * Visits {@link SimpleName} AST nodes. Resolves the binding of the
 		 * simple name and looks for it in the {@link #variableScope} map. If
 		 * the binding is found, this is a reference to a variable.
-		 * 
+		 *
 		 * @param node
 		 *            the node to visit
 		 */
@@ -121,7 +123,7 @@ public class JavascriptExactVariableBindingsExtractor extends
 		 * Looks for local variable declarations. For every declaration of a
 		 * variable, the parent {@link Block} denoting the variable's scope is
 		 * stored in {@link #variableScope} map.
-		 * 
+		 *
 		 * @param node
 		 *            the node to visit
 		 */
@@ -144,6 +146,11 @@ public class JavascriptExactVariableBindingsExtractor extends
 	}
 
 	@Override
+	public Set<?> getAvailableFeatures() {
+		return Collections.emptySet();
+	}
+
+	@Override
 	public Set<Set<ASTNode>> getNameBindings(final ASTNode node) {
 		final VariableBindingFinder bindingFinder = new VariableBindingFinder();
 		node.accept(bindingFinder);
@@ -163,5 +170,10 @@ public class JavascriptExactVariableBindingsExtractor extends
 		throw new UnsupportedOperationException(
 				"Partial snippets cannot be resolved due to the "
 						+ "lack of support from Eclipse JSDT. Consider using the approximate binding extractor.");
+	}
+
+	@Override
+	public void setActiveFeatures(final Set<?> activeFeatures) {
+		throw new NotImplementedException();
 	}
 }

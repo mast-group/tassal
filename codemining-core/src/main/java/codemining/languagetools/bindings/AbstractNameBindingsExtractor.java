@@ -1,26 +1,29 @@
 /**
- * 
+ *
  */
 package codemining.languagetools.bindings;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 
 /**
  * A NameBindings extractor from arbitrary code.
- * 
+ *
  * @author Miltos Allamanis <m.allamanis@ed.ac.uk>
- * 
+ *
  */
 public abstract class AbstractNameBindingsExtractor {
 
+	public abstract Set<?> getAvailableFeatures();
+
 	/**
 	 * Return all the name bindings for file f
-	 * 
+	 *
 	 * @param f
 	 * @return a multimap containing for each name all the relavant name
 	 *         bindings in the file.
@@ -42,7 +45,7 @@ public abstract class AbstractNameBindingsExtractor {
 
 	/**
 	 * Return the name bindings given the code.
-	 * 
+	 *
 	 * @param code
 	 * @return a multimap containing for each name all the relavant name
 	 *         bindings in the code snippet.
@@ -54,7 +57,7 @@ public abstract class AbstractNameBindingsExtractor {
 
 	/**
 	 * Get the name bindings for the given file.
-	 * 
+	 *
 	 * @param f
 	 * @return
 	 * @throws IOException
@@ -64,7 +67,7 @@ public abstract class AbstractNameBindingsExtractor {
 
 	/**
 	 * Get the name bindings given the code.
-	 * 
+	 *
 	 * @param code
 	 * @return
 	 */
@@ -72,7 +75,7 @@ public abstract class AbstractNameBindingsExtractor {
 
 	/**
 	 * Return a ResolvedSourceCode instance for the given code.
-	 * 
+	 *
 	 * @param f
 	 * @return
 	 * @throws IOException
@@ -82,9 +85,11 @@ public abstract class AbstractNameBindingsExtractor {
 
 	/**
 	 * Return a ResolvedSourceCode instance for the given code.
-	 * 
+	 *
 	 * @param code
 	 * @return
 	 */
 	public abstract ResolvedSourceCode getResolvedSourceCode(final String code);
+
+	public abstract void setActiveFeatures(Set<?> activeFeatures);
 }

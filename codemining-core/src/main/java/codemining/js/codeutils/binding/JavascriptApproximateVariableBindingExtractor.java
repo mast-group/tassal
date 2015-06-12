@@ -1,13 +1,15 @@
 /**
- * 
+ *
  */
 package codemining.js.codeutils.binding;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.apache.commons.lang.NotImplementedException;
 import org.eclipse.wst.jsdt.core.dom.ASTNode;
 import org.eclipse.wst.jsdt.core.dom.ASTVisitor;
 import org.eclipse.wst.jsdt.core.dom.Block;
@@ -24,9 +26,9 @@ import com.google.common.collect.Sets;
 
 /**
  * An approximate best-effort (worse-precision) variable binding extractor.
- * 
+ *
  * @author Miltos Allamanis <m.allamanis@ed.ac.uk>
- * 
+ *
  */
 public class JavascriptApproximateVariableBindingExtractor extends
 		AbstractJavascriptNameBindingsExtractor {
@@ -34,7 +36,7 @@ public class JavascriptApproximateVariableBindingExtractor extends
 	/**
 	 * This class looks for declarations of variables and the references to
 	 * them.
-	 * 
+	 *
 	 */
 	private static class VariableBindingFinder extends ASTVisitor {
 		private int nextDeclarId = 0;
@@ -54,7 +56,7 @@ public class JavascriptApproximateVariableBindingExtractor extends
 
 		/**
 		 * Add the binding to the current scope.
-		 * 
+		 *
 		 * @param scopeBindings
 		 * @param name
 		 */
@@ -115,7 +117,7 @@ public class JavascriptApproximateVariableBindingExtractor extends
 		 * Visits {@link SimpleName} AST nodes. Resolves the binding of the
 		 * simple name and looks for it in the {@link #variableScope} map. If
 		 * the binding is found, this is a reference to a variable.
-		 * 
+		 *
 		 * @param node
 		 *            the node to visit
 		 */
@@ -150,7 +152,7 @@ public class JavascriptApproximateVariableBindingExtractor extends
 		 * Looks for local variable declarations. For every declaration of a
 		 * variable, the parent {@link Block} denoting the variable's scope is
 		 * stored in {@link #variableScope} map.
-		 * 
+		 *
 		 * @param node
 		 *            the node to visit
 		 */
@@ -162,6 +164,11 @@ public class JavascriptApproximateVariableBindingExtractor extends
 			}
 			return true;
 		}
+	}
+
+	@Override
+	public Set<?> getAvailableFeatures() {
+		return Collections.emptySet();
 	}
 
 	@Override
@@ -177,5 +184,10 @@ public class JavascriptApproximateVariableBindingExtractor extends
 			nameBindings.add(boundNodes);
 		}
 		return nameBindings;
+	}
+
+	@Override
+	public void setActiveFeatures(final Set<?> activeFeatures) {
+		throw new NotImplementedException();
 	}
 }

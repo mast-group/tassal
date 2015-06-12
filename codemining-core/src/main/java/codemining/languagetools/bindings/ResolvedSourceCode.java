@@ -19,6 +19,9 @@ import com.google.common.collect.ArrayListMultimap;
  *
  */
 public class ResolvedSourceCode {
+
+	public final String name;
+
 	public final List<String> codeTokens;
 
 	private final ArrayListMultimap<String, TokenNameBinding> variableBindings;
@@ -26,11 +29,27 @@ public class ResolvedSourceCode {
 	/**
 	 * Assumes that the variable bindings use the same (as in ==) token list.
 	 *
+	 * @param name
 	 * @param codeTokens
 	 * @param variableBindings
 	 */
 	public ResolvedSourceCode(final List<String> codeTokens,
 			final ArrayListMultimap<String, TokenNameBinding> variableBindings) {
+		this.name = "UnkownSourceCodeName";
+		this.codeTokens = codeTokens;
+		this.variableBindings = variableBindings;
+	}
+
+	/**
+	 * Assumes that the variable bindings use the same (as in ==) token list.
+	 *
+	 * @param name
+	 * @param codeTokens
+	 * @param variableBindings
+	 */
+	public ResolvedSourceCode(final String name, final List<String> codeTokens,
+			final ArrayListMultimap<String, TokenNameBinding> variableBindings) {
+		this.name = name;
 		this.codeTokens = codeTokens;
 		this.variableBindings = variableBindings;
 	}

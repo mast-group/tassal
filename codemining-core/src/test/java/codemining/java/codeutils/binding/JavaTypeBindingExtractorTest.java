@@ -35,21 +35,19 @@ public class JavaTypeBindingExtractorTest {
 
 	@Test
 	public void testClassLevelBindings() throws IOException {
-		final JavaTypeBindingExtractor jame = new JavaTypeBindingExtractor();
+		final JavaTypeDeclarationBindingExtractor jame = new JavaTypeDeclarationBindingExtractor();
 
 		final List<TokenNameBinding> classTypeindings = jame
 				.getNameBindings(classContent);
 
-		BindingTester
-				.checkAllBindings(classTypeindings);
-		assertEquals(classTypeindings.size(), 7);
+		BindingTester.checkAllBindings(classTypeindings);
+		assertEquals(classTypeindings.size(), 1);
 
 		final List<TokenNameBinding> classTypeBindings2 = jame
 				.getNameBindings(classContent2);
-		BindingTester
-				.checkAllBindings(classTypeBindings2);
+		BindingTester.checkAllBindings(classTypeBindings2);
 
-		assertEquals(classTypeBindings2.size(), 11);
+		assertEquals(classTypeBindings2.size(), 1);
 	}
 
 }

@@ -51,7 +51,7 @@ public abstract class AbstractPythonTokenizer implements ITokenizer {
 				// TODO: Bad Heurisitc...
 				tokens.put(
 						nextToken.getBeginLine() * 500
-						+ nextToken.getBeginCol(),
+								+ nextToken.getBeginCol(),
 						new FullToken(nextToken.image, Integer
 								.toString(nextToken.kind)));
 			}
@@ -68,12 +68,12 @@ public abstract class AbstractPythonTokenizer implements ITokenizer {
 
 	@Override
 	public String getIdentifierType() {
-		return "94"; // TODO from not hard coded?
+		return "92"; // TODO from not hard coded?
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see codemining.languagetools.ITokenizer#getKeywordTypes()
 	 */
 	@Override
@@ -83,7 +83,7 @@ public abstract class AbstractPythonTokenizer implements ITokenizer {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see codemining.languagetools.ITokenizer#getLiteralTypes()
 	 */
 	@Override
@@ -172,7 +172,7 @@ public abstract class AbstractPythonTokenizer implements ITokenizer {
 				// TODO: Bad Heurisitc...
 				tokens.put(
 						nextToken.getBeginLine() * 500
-						+ nextToken.getBeginCol(), nextToken.image);
+								+ nextToken.getBeginCol(), nextToken.image);
 			}
 			nextToken = mng.getNextToken();
 		}

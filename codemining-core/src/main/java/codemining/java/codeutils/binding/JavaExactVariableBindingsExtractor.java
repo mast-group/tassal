@@ -5,6 +5,7 @@ package codemining.java.codeutils.binding;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -13,6 +14,7 @@ import java.util.Set;
 import org.eclipse.jdt.core.dom.*;
 
 import codemining.java.codeutils.JavaASTExtractor;
+import codemining.java.codeutils.binding.JavaVariableFeatureExtractor.AvailableFeatures;
 import codemining.java.tokenizers.JavaTokenizer;
 import codemining.languagetools.ITokenizer;
 import codemining.languagetools.bindings.TokenNameBinding;
@@ -140,6 +142,8 @@ public class JavaExactVariableBindingsExtractor extends
 		}
 	}
 
+	private final JavaVariableFeatureExtractor featureExtractor = new JavaVariableFeatureExtractor();
+
 	public JavaExactVariableBindingsExtractor() {
 		super(new JavaTokenizer());
 	}
@@ -154,8 +158,14 @@ public class JavaExactVariableBindingsExtractor extends
 	}
 
 	@Override
+	public Set<?> getAvailableFeatures() {
+		return Sets.newHashSet(JavaVariableFeatureExtractor.AvailableFeatures
+				.values());
+	}
+
+	@Override
 	protected Set<String> getFeatures(final Set<ASTNode> boundNodes) {
-		return JavaVariableFeatureExtractor.variableFeatures(boundNodes);
+		return featureExtractor.variableFeatures(boundNodes);
 	}
 
 	@Override
@@ -178,5 +188,11 @@ public class JavaExactVariableBindingsExtractor extends
 		throw new UnsupportedOperationException(
 				"Partial snippets cannot be resolved due to the "
 						+ "lack of support from Eclipse JDT. Consider using the approximate binding extractor.");
+	}
+
+	@Override
+	public void setActiveFeatures(final Set<?> activeFeatures) {
+		featureExtractor
+				.setActiveFeatures((Collection<AvailableFeatures>) activeFeatures);
 	}
 }

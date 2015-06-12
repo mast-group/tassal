@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package codemining.java.codeutils.binding;
 
@@ -38,21 +38,19 @@ public class JavaMethodBindingExtractorTest {
 
 	@Test
 	public void testClassLevelBindings() throws IOException {
-		final JavaMethodBindingExtractor jame = new JavaMethodBindingExtractor();
+		final JavaMethodInvocationBindingExtractor jame = new JavaMethodInvocationBindingExtractor();
 
 		final List<TokenNameBinding> classMethodBindings = jame
 				.getNameBindings(classContent);
 
-		BindingTester
-				.checkAllBindings(classMethodBindings);
-		assertEquals(classMethodBindings.size(), 8);
+		BindingTester.checkAllBindings(classMethodBindings);
+		assertEquals(classMethodBindings.size(), 7);
 
 		final List<TokenNameBinding> classMethodBindings2 = jame
 				.getNameBindings(classContent2);
-		BindingTester
-				.checkAllBindings(classMethodBindings2);
+		BindingTester.checkAllBindings(classMethodBindings2);
 
-		assertEquals(classMethodBindings2.size(), 7);
+		assertEquals(classMethodBindings2.size(), 6);
 	}
 
 }
