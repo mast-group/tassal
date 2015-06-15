@@ -12,7 +12,9 @@ import codesum.lm.main.Settings;
 import codesum.lm.main.UnfoldAlgorithms;
 import codesum.lm.main.UnfoldAlgorithms.GreedyTopicSumAlgorithm;
 import codesum.lm.topicsum.GibbsSampler;
+import codesum.lm.topicsum.Topic;
 
+import com.beust.jcommander.IParameterValidator;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
@@ -36,9 +38,11 @@ public class FoldSourceFile {
 		@Parameter(names = { "-c", "--compression" }, description = "Desired compression ratio", required = true)
 		int compressionRatio;
 
+		@Parameter(names = { "-b", "--backoffTopic" }, description = "Background topic to back off to (0-2)", validateWith = checkBackoffTopic.class)
+		int backoffTopic = 2;
+
 		@Parameter(names = { "-o", "--outFile" }, description = "Where to save folded source file")
 		File outFile = null;
-
 	}
 
 	public static void main(final String[] args) {
@@ -49,7 +53,8 @@ public class FoldSourceFile {
 		try {
 			jc.parse(args);
 			foldSourceFile(params.workingDir, params.file, params.project,
-					params.compressionRatio, params.outFile);
+					params.compressionRatio, params.backoffTopic,
+					params.outFile);
 		} catch (final ParameterException e) {
 			System.out.println(e.getMessage());
 			jc.usage();
@@ -68,6 +73,8 @@ public class FoldSourceFile {
 	 *            project containing above file
 	 * @param compressionRatio
 	 *            (%) desired compression ratio
+	 * @param backoffTopic
+	 *            background topic to back off to (0-2)
 	 * @param outFile
 	 *            (optional) where to save folded source file
 	 *
@@ -75,13 +82,14 @@ public class FoldSourceFile {
 	 */
 	public static ArrayList<Integer> foldSourceFile(final String workingDir,
 			final File file, final String project, final int compressionRatio,
-			final File outFile) {
+			final int backoffTopic, final File outFile) {
 
 		// Set paths and default code folder settings
 		final Settings set = new Settings();
 
 		// Main code folder settings
 		set.profitType = "KLDivFile";
+		set.backoffTopicID = backoffTopic;
 		set.curProj = project;
 		set.compressionRatio = 100 - compressionRatio;
 
@@ -143,6 +151,18 @@ public class FoldSourceFile {
 			}
 		}
 		return foldedLines;
+	}
+
+	public static class checkBackoffTopic implements IParameterValidator {
+		@Override
+		public void validate(final String name, final String value)
+				throws ParameterException {
+			final int n = Integer.parseInt(value);
+			final int maxVal = Topic.nBackTopics - 1;
+			if (n < 0 || n > maxVal)
+				throw new ParameterException(
+						"backoffTopic should be in the range 0 to " + maxVal);
+		}
 	}
 
 	private FoldSourceFile() {

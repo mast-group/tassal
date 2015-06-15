@@ -318,16 +318,6 @@ public class FoldableTree {
 		public int performOp(final FoldableNode fn, final int prev,
 				final HashMap<FoldableNode, Option> options) {
 
-			// If always folding comment/import nodes, their cost is infinite
-			// if (set.noCommentsImports
-			// && (fn.node.getNodeType() == ASTNode.BLOCK_COMMENT
-			// || fn.node.getNodeType() == ASTNode.LINE_COMMENT || fn.node
-			// .getNodeType() == ASTNode.IMPORT_DECLARATION)) {
-			// options.put(fn, new Option(null, Integer.MAX_VALUE, Double.NaN));
-			// return 0; // Ignore for accumulated cost (not that it
-			// // matters)
-			// }
-
 			// If node is unfolded, cost is zero
 			if (fn.isUnfolded) {
 				options.put(fn, new Option(0, Double.NaN));
@@ -384,16 +374,6 @@ public class FoldableTree {
 
 			}
 
-			// If always folding comment/import nodes, their cost is infinite
-			// if (set.noCommentsImports
-			// && (fn.node.getNodeType() == ASTNode.BLOCK_COMMENT
-			// || fn.node.getNodeType() == ASTNode.LINE_COMMENT || fn.node
-			// .getNodeType() == ASTNode.IMPORT_DECLARATION)) {
-			// options.put(fn, new Option(null, Integer.MAX_VALUE, profit));
-			// return 0; // Ignore for accumulated cost (not that it
-			// // matters)
-			// }
-
 			// If node is unfolded, cost is zero
 			if (fn.isUnfolded) {
 				options.put(fn, new Option(0, profit));
@@ -415,17 +395,9 @@ public class FoldableTree {
 
 		// Containers for unfolded nodes/terms
 		private final HashSet<Integer> unfoldedNodeIDs = Sets.newHashSet();
-		private final ArrayList<String> unfoldedTerms = Lists.newArrayList();
-		private final ArrayList<String> fileTerms = Lists.newArrayList();
-
-		public GreedyTopicSumOptionsOp() {
-			for (final Multiset<String> nodeTerms : getIDTerms().values())
-				fileTerms.addAll(nodeTerms);
-		}
 
 		public void addNodeToUnfolded(final FoldableNode node) {
 			unfoldedNodeIDs.add(node.getNodeID());
-			unfoldedTerms.addAll(node.getTermFreqs());
 		}
 
 		@Override
@@ -437,57 +409,23 @@ public class FoldableTree {
 			if (!fn.isUnfolded) {
 
 				// Add current node and terms to unfolded
-				if (!set.profitType.equals("CondSurprising2")) {
-					unfoldedNodeIDs.add(fn.nodeID);
-					unfoldedTerms.addAll(fn.getTermFreqs());
-				}
+				unfoldedNodeIDs.add(fn.nodeID);
 
 				// Get specified profit
-				// FIXME all non-KLDIV probabilities should use specific mixing
-				// distribution theta_n for *each node n* (not just current n)
 				final String curFile = FilenameUtils
 						.getBaseName(file.getName());
-				if (set.profitType.equals("Surprising")) {
-					profit = sampler.getSurpriseTokens(unfoldedTerms,
-							set.curProj, curFile, fn.nodeID);
-				} else if (set.profitType.equals("CondSurprising")) {
-					final ArrayList<String> fileLessSummaryTerms = Lists
-							.newArrayList(fileTerms);
-					fileLessSummaryTerms.removeAll(unfoldedTerms);
-					profit = sampler.getMinusConditionalSurprise(
-							fileLessSummaryTerms, unfoldedTerms, set.curProj,
-							curFile, fn.nodeID);
-				} else if (set.profitType.equals("CondSurprising2")) {
-					final ArrayList<String> nodeTerms = Lists.newArrayList();
-					nodeTerms.addAll(fn.termFreqs);
-					profit = sampler.getConditionalSurprise(nodeTerms,
-							unfoldedTerms, set.curProj, curFile, fn.nodeID);
-				} else if (set.profitType.equals("Likely")) {
-					profit = sampler.getShiftedLogProbTokens(0.0,
-							unfoldedTerms, set.curProj, curFile, fn.nodeID);
-				} else if (set.profitType.matches("Specific.*")) {
-					profit = sampler.getShiftedSpecificLogProbTokens(0.0,
-							unfoldedTerms, set.profitType, set.curProj,
-							curFile, fn.nodeID);
-				} else if (set.profitType.matches("KLDiv.*")) {
+				if (set.profitType.matches("KLDiv.*"))
 					profit = -1
-							* sampler.getKLDiv(set.profitType, set.curProj,
-									curFile, unfoldedNodeIDs);
-				} else if (set.profitType.equals("NoContentModel"))
-					profit = 1;
+							* sampler.getKLDiv(set.profitType,
+									set.backoffTopicID, set.curProj, curFile,
+									unfoldedNodeIDs);
 				else
 					throw new RuntimeException("Incorrect profit function!");
 
 				// Remove current node and terms from unfolded
-				if (!set.profitType.equals("CondSurprising2")) {
-					unfoldedNodeIDs.remove(fn.nodeID);
-					unfoldedTerms.removeAll(fn.termFreqs);
-				}
+				unfoldedNodeIDs.remove(fn.nodeID);
 
-				if (profit < 0 && !set.profitType.matches("CondSurprising.*")
-						&& !set.profitType.equals("Likely")
-						&& !set.profitType.matches("Specific.*")
-						&& !set.profitType.matches("KLDiv.*")) {
+				if (profit < 0 && !set.profitType.matches("KLDiv.*")) {
 					System.out.println("Profit: " + profit);
 					throw new RuntimeException("Profit must be positive!");
 				}
@@ -497,16 +435,6 @@ public class FoldableTree {
 					profit = Double.NEGATIVE_INFINITY;
 
 			}
-
-			// If always folding comment/import nodes, their cost is infinite
-			// if (set.noCommentsImports
-			// && (fn.node.getNodeType() == ASTNode.BLOCK_COMMENT
-			// || fn.node.getNodeType() == ASTNode.LINE_COMMENT || fn.node
-			// .getNodeType() == ASTNode.IMPORT_DECLARATION)) {
-			// options.put(fn, new Option(null, Integer.MAX_VALUE, profit));
-			// return 0; // Ignore for accumulated cost (not that it
-			// // matters)
-			// }
 
 			// If node is unfolded, cost is zero
 			if (fn.isUnfolded) {

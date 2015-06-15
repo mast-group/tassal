@@ -24,12 +24,11 @@ public class Settings {
 	public boolean splitTokens = true;
 	public boolean tokenizeComments = true;
 	public boolean foldLineComments = false;
-	// public boolean noCommentsImports = false; // Always fold
-	// comments/imports
 
 	// Main variable settings
 	public String curProj;
 	public String profitType;
+	public int backoffTopicID;
 	public int compressionRatio;
 
 	// Paths and projects

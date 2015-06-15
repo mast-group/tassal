@@ -1,14 +1,11 @@
 package codesum.lm.topicsum;
 
-import java.io.File;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Random;
 
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.math3.special.Gamma;
 
 import codemining.util.StatsUtil;
@@ -18,8 +15,6 @@ import codemining.util.serialization.Serializer;
 import com.esotericsoftware.kryo.DefaultSerializer;
 import com.esotericsoftware.kryo.serializers.CompatibleFieldSerializer;
 import com.google.common.collect.HashMultiset;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
 
 /**
  * The heavily modified TopicSum sampler from
@@ -93,7 +88,7 @@ public class GibbsSampler implements Serializable {
 
 			ctopic[ci] = new Topic(Topic.CONTENT);
 
-			dtopic[ci] = Maps.newHashMap();
+			dtopic[ci] = new HashMap<>();
 			// stopic[ci] = Maps.newHashMap();
 			for (int di = 0; di < corpus.getCluster(ci).ndocs(); di++) {
 
@@ -112,7 +107,7 @@ public class GibbsSampler implements Serializable {
 
 	/**
 	 * Initialize the topic token counts randomly
-	 * 
+	 *
 	 * note: I asked Aria and he specifically said he did not randomize the
 	 * models randomly but for topic sum it doesn't really matter
 	 */
@@ -217,7 +212,7 @@ public class GibbsSampler implements Serializable {
 
 	/**
 	 * One iteration of Gibbs sampler
-	 * 
+	 *
 	 * @param lastIteration
 	 *            false if sample the topic randomly, true if we just pick the
 	 *            most likely topics
@@ -249,7 +244,7 @@ public class GibbsSampler implements Serializable {
 
 	/**
 	 * Sample tokens from given sentence
-	 * 
+	 *
 	 * @param ci
 	 *            cluster index
 	 * @param di
@@ -334,7 +329,7 @@ public class GibbsSampler implements Serializable {
 
 	/**
 	 * Optimize alpha*m_k using MacKay and Peto's Fixed Point Iteration
-	 * 
+	 *
 	 * @see H. M. Wallach, Structured Topic Models for Language
 	 */
 	public void optimizeAlpha() {
@@ -343,7 +338,7 @@ public class GibbsSampler implements Serializable {
 		final int nTopics = Topic.nTopics;
 
 		// Get C_k(f) - no. contexts in which topic k appeared exactly f times
-		final HashMap<Integer, HashMultiset<Integer>> freqs = Maps.newHashMap();
+		final HashMap<Integer, HashMultiset<Integer>> freqs = new HashMap<>();
 		for (int k = 0; k < nTopics; k++) {
 			final HashMultiset<Integer> topicFreq = HashMultiset.create();
 			freqs.put(k, topicFreq);
@@ -381,8 +376,7 @@ public class GibbsSampler implements Serializable {
 		}
 
 		// Get N_f(k) - no. contexts in which topic k appeared f or more times
-		final HashMap<Integer, HashMultiset<Integer>> cumFreqs = Maps
-				.newHashMap();
+		final HashMap<Integer, HashMultiset<Integer>> cumFreqs = new HashMap<>();
 		for (int k = 0; k < nTopics; k++) {
 			final HashMultiset<Integer> cumTopicFreq = HashMultiset.create();
 			cumFreqs.put(k, cumTopicFreq);
@@ -432,7 +426,7 @@ public class GibbsSampler implements Serializable {
 
 	/**
 	 * Used for alpha*m_k optimization - equation (2.37)
-	 * 
+	 *
 	 * @see H. M. Wallach, Structured Topic Models for Language
 	 */
 	private double K(final double alpha) {
@@ -465,7 +459,7 @@ public class GibbsSampler implements Serializable {
 
 	/**
 	 * Optimize alpha*m_k using Minka's Fixed Point Iteration - equation (2.13)
-	 * 
+	 *
 	 * @see H. M. Wallach, Structured Topic Models for Language
 	 * @deprecated Slow, use {@link #optimizeAlpha()}
 	 */
@@ -520,7 +514,7 @@ public class GibbsSampler implements Serializable {
 
 	/**
 	 * Optimize beta using MacKay and Peto's Fixed Point Iteration
-	 * 
+	 *
 	 * @see H. M. Wallach, Structured Topic Models for Language
 	 */
 	public void optimizeBeta() {
@@ -530,7 +524,7 @@ public class GibbsSampler implements Serializable {
 		final double W = (double) nTokensCorpus;
 
 		// C_k(f), no. contexts to which topic k is assigned exactly f times
-		final HashMap<Integer, HashMultiset<Integer>> freqs = Maps.newHashMap();
+		final HashMap<Integer, HashMultiset<Integer>> freqs = new HashMap<>();
 		for (int k = 0; k < nTopics; k++) {
 			final HashMultiset<Integer> topicFreq = HashMultiset.create();
 			freqs.put(k, topicFreq);
@@ -583,8 +577,7 @@ public class GibbsSampler implements Serializable {
 		}
 
 		// Get N_f(k) - no. contexts in which topic k appeared f or more times
-		final HashMap<Integer, HashMultiset<Integer>> cumFreqs = Maps
-				.newHashMap();
+		final HashMap<Integer, HashMultiset<Integer>> cumFreqs = new HashMap<>();
 		for (int k = 0; k < nTopics; k++) {
 			final HashMultiset<Integer> cumTopicFreq = HashMultiset.create();
 			cumFreqs.put(k, cumTopicFreq);
@@ -718,7 +711,7 @@ public class GibbsSampler implements Serializable {
 	 * Tend away from document specific sentences (final improves human
 	 * evaluations & ROUGE scores significantly, though in our workshop paper we
 	 * put this on top of HierSum, not TopicSum)
-	 * 
+	 *
 	 * @param content
 	 *            content distribution
 	 * @param document
@@ -727,7 +720,7 @@ public class GibbsSampler implements Serializable {
 	 *            summary distribution
 	 * @param backoff
 	 *            constant backoff value
-	 * 
+	 *
 	 * @return the kldivergence between the content distribution and the summary
 	 *         distribution minus the kldivergence between the document
 	 *         distribution and the summary distribution
@@ -755,7 +748,7 @@ public class GibbsSampler implements Serializable {
 	/**
 	 * Tend away from document specific sentences and back off to the background
 	 * distribution if a word is not in the summary
-	 * 
+	 *
 	 * @param content
 	 *            content distribution
 	 * @param document
@@ -764,7 +757,7 @@ public class GibbsSampler implements Serializable {
 	 *            summary distribution
 	 * @param background
 	 *            background distribution
-	 * 
+	 *
 	 * @return the kldivergence between the content distribution and the summary
 	 *         distribution minus the kldivergence between the document
 	 *         distribution and the summary distribution
@@ -795,7 +788,7 @@ public class GibbsSampler implements Serializable {
 	 * The kldivergence backs off to the background distribution if a word is
 	 * not in the summary (final tends towards long sentences, gets better ROUGE
 	 * scores but doesn't improve human-evaluations)
-	 * 
+	 *
 	 * @param content
 	 *            content distribution
 	 * @param summary
@@ -825,7 +818,7 @@ public class GibbsSampler implements Serializable {
 	 * The kldivergence backs off to some constant value. (this is what Aria did
 	 * originally, can adjust the value to tend towards extracting longer or
 	 * shorter sentences).
-	 * 
+	 *
 	 * @param content
 	 *            content distribution
 	 * @param summary
@@ -851,245 +844,11 @@ public class GibbsSampler implements Serializable {
 	}
 
 	/**
-	 * Calculate probability of the given tokens in the specified sentence
-	 */
-	public double getShiftedSpecificLogProbTokens(final double shift,
-			final Collection<String> tokens, final String TopicType,
-			final String project, final String file, final int nodeID) {
-
-		// Handle case of zero tokens
-		if (tokens.size() == 0)
-			return Math.log(shift);
-
-		// Convert project, file, nodeID to model array indices
-		final int ci = corpus.getIndexProject(project);
-		final int di = corpus.getCluster(ci).getIndexDoc(file);
-		final int si = nodeID;
-
-		// Get specific topic
-		Topic topic = null;
-		if (TopicType.equals("SpecificFile"))
-			topic = dtopic[ci].get(di);
-		else if (TopicType.equals("SpecificProj"))
-			topic = ctopic[ci];
-		else
-			throw new RuntimeException("Incorrect Specific Topic Type");
-
-		final Sentence sent = corpus.getCluster(ci).getDoc(di).getSent(si);
-
-		// For each token in collection
-		double loglikelihood = 0.0;
-
-		// Get p(w|topic)
-		for (final String token : tokens)
-			loglikelihood += Math.log(phiHat(topic, corpus.getAlphabet()
-					.getTokenInt(token))
-					* thetaHat(sent, topic.getTopicID()) + shift);
-
-		// Return probability
-		return loglikelihood;
-
-	}
-
-	/**
-	 * Calculate surprise, i.e. negative log-probability of the given tokens in
-	 * the specified sentence
-	 */
-	public double getSurpriseTokens(final Collection<String> tokens,
-			final String project, final String file, final int nodeID) {
-
-		// Having no tokens is really not surprising
-		if (tokens.size() == 0)
-			return Double.MIN_VALUE; // Needs to be positive for ILP
-		return -1 * getShiftedLogProbTokens(0.0, tokens, project, file, nodeID);
-	}
-
-	/**
-	 * Calculate shifted log-probability of the tokens in the specified sentence
-	 */
-	public double getShiftedLogProbTokens(final double shift,
-			final Collection<String> tokens, final String project,
-			final String file, final int nodeID) {
-
-		// Handle case of zero tokens
-		if (tokens.size() == 0)
-			return Math.log(shift);
-
-		// Convert project, file, nodeID to model array indices
-		final int ci = corpus.getIndexProject(project);
-		final int di = corpus.getCluster(ci).getIndexDoc(file);
-		final int si = nodeID;
-
-		// Get topics
-		final Topic[] topics = new Topic[Topic.nTopics];
-		for (int b = 0; b < Topic.nBackTopics; b++)
-			topics[Topic.BACKGROUND[b]] = btopic[b];
-
-		topics[Topic.CONTENT] = ctopic[ci];
-		topics[Topic.DOCUMENT] = dtopic[ci].get(di);
-		// topics[Topic.SENTENCE] = stopic[ci].get(di)[si];
-
-		final Sentence sent = corpus.getCluster(ci).getDoc(di).getSent(si);
-
-		// For each token in collection
-		double loglikelihood = 0.0;
-		for (final String token : tokens) {
-
-			// Get tokenID
-			final int tokenID = corpus.getAlphabet().getTokenInt(token);
-
-			// Marginalize out topics
-			double topicSum = 0;
-			for (int k = 0; k < Topic.nTopics; k++)
-				topicSum += phiHat(topics[k], tokenID) * thetaHat(sent, k);
-
-			loglikelihood += Math.log(topicSum + shift);
-
-		}
-
-		// Return probability
-		return loglikelihood;
-
-	}
-
-	/**
-	 * Calculate conditional surprise, i.e. logP(tokens in sentence | tokens
-	 * unfolded)
-	 */
-	public double getConditionalSurprise(
-			final ArrayList<String> tokensSentence,
-			final ArrayList<String> tokensUnfolded, final String project,
-			final String file, final int nodeID) {
-
-		// Having no tokens is really not surprising
-		if (tokensSentence.size() == 0)
-			return 0;
-		return -1
-				* getMinusConditionalSurprise(tokensSentence, tokensUnfolded,
-						project, file, nodeID);
-	}
-
-	/**
-	 * Calculate minus conditional surprise, i.e. logP(tokens in document less
-	 * tokens in summary | tokens in summary)
-	 */
-	public double getMinusConditionalSurprise(
-			final ArrayList<String> tokensDocumentLessSummary,
-			final ArrayList<String> tokensSummary, final String project,
-			final String file, final int nodeID) {
-
-		// Handle zero tokens (explaining all tokens in document is good)
-		if (tokensDocumentLessSummary.size() == 0)
-			return 0;
-
-		// Convert project, file, nodeID to model array indices
-		final int ci = corpus.getIndexProject(project);
-		final int di = corpus.getCluster(ci).getIndexDoc(file);
-		// final int si = nodeID;
-
-		// Get topics
-		final Topic[] topics = new Topic[Topic.nTopics];
-		for (int b = 0; b < Topic.nBackTopics; b++)
-			topics[Topic.BACKGROUND[b]] = btopic[b];
-
-		topics[Topic.CONTENT] = ctopic[ci];
-		topics[Topic.DOCUMENT] = dtopic[ci].get(di);
-		// topics[Topic.SENTENCE] = stopic[ci].get(di)[si];
-
-		// For each token in collection
-		double loglikelihood = 0.0;
-		for (final String token : tokensDocumentLessSummary) {
-
-			// Get tokenID
-			final int tokenID = corpus.getAlphabet().getTokenInt(token);
-
-			// Marginalize out topics
-			double topicSum = 0;
-			for (int k = 0; k < Topic.nTopics; k++)
-				topicSum += phiHat(topics[k], tokenID)
-						* thetaHatConditional(tokensSummary, topics[k]);
-
-			loglikelihood += Math.log(topicSum);
-
-		}
-
-		// Return probability
-		return loglikelihood;
-	}
-
-	private double thetaHatConditional(final ArrayList<String> tokensSummary,
-			final Topic topic) {
-
-		// Get counts
-		double tokenCount = 0;
-		for (final String token : tokensSummary) {
-
-			final int tokenID = corpus.getAlphabet().getTokenInt(token);
-			tokenCount += (double) topic.getTokenCount(tokenID);
-		}
-
-		// Return conditional theta
-		return (tokenCount + alpham[topic.getTopicID()])
-				/ (((double) tokensSummary.size()) + alpha);
-	}
-
-	/**
-	 * Calculate KL divergence of node(s) for forest
-	 */
-	public double getKLDiv(final String KLDivType, final String project,
-			final Multimap<File, Integer> nodeIDs) {
-
-		// Convert project to model array indices
-		final int ci = corpus.getIndexProject(project);
-
-		// Create distribution for nodes (i.e. sentences)
-		final Distribution sentDist = new Distribution();
-
-		// For each file in forest
-		for (final File file : nodeIDs.keySet()) {
-
-			final int di = corpus.getCluster(ci).getIndexDoc(
-					FilenameUtils.getBaseName(file.getName()));
-
-			// For each node in multimap
-			for (final int si : nodeIDs.get(file)) {
-
-				final Sentence sent = corpus.getCluster(ci).getDoc(di)
-						.getSent(si);
-				if (sent != null)
-					TopicSum.addToDistribution(sent, sentDist);
-				else
-					throw new RuntimeException(
-							"Node not present in TopicModel. "
-									+ "Have you trained the model using the latest visitor? Or is this a duplicate file name?");
-			}
-		}
-
-		// Java background topic is no. 2
-		final Topic jtopic = btopic[2];
-
-		// Calculate relevant KLDiv type
-		double kl = 0;
-		if (KLDivType.equals("KLDivProj"))
-			kl = kldiv(ctopic[ci], sentDist, jtopic);
-		else
-			throw new RuntimeException("Incorrect KLDIV Type");
-
-		return kl;
-
-	}
-
-	public double getKLDiv(final String KLDivType, final String project,
-			final File file, final Collection<Integer> nodeIDs) {
-		return getKLDiv(KLDivType, project,
-				FilenameUtils.getBaseName(file.getName()), nodeIDs);
-	}
-
-	/**
 	 * Calculate KL divergence of node(s)
 	 */
-	public double getKLDiv(final String KLDivType, final String project,
-			final String file, final Collection<Integer> nodeIDs) {
+	public double getKLDiv(final String KLDivType, final int backoffTopicID,
+			final String project, final String file,
+			final Collection<Integer> nodeIDs) {
 
 		// Convert project, file, nodeID to model array indices
 		final int ci = corpus.getIndexProject(project);
@@ -1101,8 +860,8 @@ public class GibbsSampler implements Serializable {
 			TopicSum.addToDistribution(corpus.getCluster(ci).getDoc(di)
 					.getSent(si), sentDist);
 
-		// Java background topic is no. 2
-		final Topic jtopic = btopic[2];
+		// Background topic to backoff to (should be Java topic)
+		final Topic jtopic = btopic[backoffTopicID];
 
 		// Calculate relevant KLDiv type
 		double kl = 0;
@@ -1119,24 +878,8 @@ public class GibbsSampler implements Serializable {
 	}
 
 	/**
-	 * Calculate reciprocal shifted KL divergence of node(s)
-	 */
-	public double getReciprocalKLDiv(final String KLDivType,
-			final String project, final String file,
-			final Collection<Integer> nodeIDs) {
-
-		final double kl = getKLDiv(KLDivType, project, file, nodeIDs);
-
-		if (kl < 0)
-			throw new RuntimeException("KL must be positive!");
-
-		// Return reciprocal shifted KL-Div
-		return 1.0 / (kl + 1.0);
-	}
-
-	/**
 	 * Calculate log likelihood of the data
-	 * 
+	 *
 	 * @return log likelihood of the data at this point
 	 */
 	public double logLikelihood() {
@@ -1226,7 +969,7 @@ public class GibbsSampler implements Serializable {
 
 	/**
 	 * Overloaded digamma function: returns 0 if argument is zero
-	 * 
+	 *
 	 * @param x
 	 * @return digamma(x) if x nonzero, otherwise zero
 	 */

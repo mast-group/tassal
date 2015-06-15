@@ -4,9 +4,15 @@ TASSAL: Tree-based Autofolding Software Summarization ALgorithm [![Build Status]
 TASSAL is a tool for the automatic summarization of source code using autofolding. Autofolding automatically creates a summary of a source code file by folding non-essential code and comment blocks. 
 
 This is an implementation of the code summarizer from our paper:  
-*Autofolding for Source Code Summarization*  
-J. Fowkes, R. Ranca, M. Allamanis, M. Lapata and C. Sutton. arXiv preprint 1403.4503, 2014.   
-http://arxiv.org/abs/1403.4503
+[*Autofolding for Source Code Summarization*](http://arxiv.org/abs/1403.4503)  
+J. Fowkes, R. Ranca, M. Allamanis, M. Lapata and C. Sutton. arXiv preprint 1403.4503, 2015.   
+
+There are two main variants of the algorithm:
+
+* **TASSAL VSM** which uses a [Vector Space Model](https://en.wikipedia.org/wiki/Vector_space_model) for source code - less accurate but very fast (real-time)
+* **TASSAL** which uses a [Topic Model](https://en.wikipedia.org/wiki/Topic_model) for source code - more accurate but slower (requires training)
+
+both are described below.
 
 Installation 
 ------------
@@ -29,10 +35,52 @@ in the main tassal directory (note that this requires [maven](https://maven.apac
 
 This will create the standalone runnable jar ```tassal-1.1-SNAPSHOT.jar``` in the tassal/target subdirectory.
 
+Running TASSAL VSM
+------------------
+
+TASAAL VSM uses a Vector Space Model of source code tokens to determine which are the least relevent code regions to autofold. 
+TASSAL VSM can run in real-time. 
+
+#### Autofolding a source file
+
+*codesum.lm.tui.FoldSourceFileVSM* folds a specified source file. It has the following command line options:
+
+* **-f**    souce file to autofold
+* **-c**    desired compression ratio for the file
+* **-o**   (optional)  where to save the folded file
+
+See the individual file javadocs in *codesum.lm.tui* for information on the Java interface.
+In Eclipse you can set command line arguments for the TASSAL interface using the *Run Configurations...* menu option. 
+
+#### Example Usage
+
+A complete example using the command line interface on a runnable jar.
+
+First clone the ActionBarSherlock project into /tmp/java_projects/
+
+  ```sh 
+  $ mkdir /tmp/java_projects/
+  $ cd /tmp/java_projects/
+  $ git clone https://github.com/JakeWharton/ActionBarSherlock.git 
+  ```
+
+We can then fold a specific file 
+
+  ```sh 
+  $ java -cp tassal-1.1-SNAPSHOT.jar codesum.lm.tui.FoldSourceFileVSM     
+   -c 50
+   -f /tmp/java_projects/ActionBarSherlock/actionbarsherlock/src/com/actionbarsherlock/app/SherlockFragment.java 
+   -o /tmp/SherlockFragmentFolded.java 
+  ```
+
+which will output the folded file to /tmp/SherlockFragmentFolded.java. 
+
 Running TASSAL
 --------------
 
-The *codesum.lm.tui* package contains both the Java and command line interface.
+TASAAL uses a scoped Topic Model of source code tokens to determine which are the least relevent code regions to autofold. 
+TASSAL requires the topic model to be trained on a dataset (the larger the better) before it can fold files in the dataset. 
+While this is slower than using a VSM model, it is considerably more accurate. 
 
 #### Training the source code topic model
 
@@ -42,18 +90,20 @@ The *codesum.lm.tui* package contains both the Java and command line interface.
 * **-w**   working directory where the topic model creates necessary files
 * **-i**   (optional)  no. iterations to train the topic model for.
 
+This will output a summary of the top 25 tokens in some of the discovered topics. 
+
 #### Autofolding a source file
 
 *codesum.lm.tui.FoldSourceFile* folds a specified source file. It has the following command line options:
 
-* **-w**    working directory where the topic model creates necessary files (same as above)
-* **-f**    souce file to autofold
-* **-p**    project containing the file to fold
-* **-c**    desired compression ratio for the file
-* **-o**   (optional)  where to output the folded file
+* **-w**   working directory where the topic model creates necessary files (same as above)
+* **-f**   souce file to autofold
+* **-p**   project containing the file to fold
+* **-c**   desired compression ratio for the file
+* **-b**   (optional)  background topic to back off to (0-2, default=2) 
+* **-o**   (optional)  where to save the folded file
 
-See the individual file javadocs for information on the Java interface.
-
+See the individual file javadocs in *codesum.lm.tui* for information on the Java interface.
 In Eclipse you can set command line arguments for the TASSAL interface using the *Run Configurations...* menu option. 
 
 #### Example Usage
@@ -80,46 +130,6 @@ This trains the topic model for 100 iterations and outputs the model to /tmp/. W
   ```sh 
   $ java -cp tassal-1.1-SNAPSHOT.jar codesum.lm.tui.FoldSourceFile     
    -w /tmp/  -c 50 -p ActionBarSherlock 
-   -f /tmp/java_projects/ActionBarSherlock/actionbarsherlock/src/com/actionbarsherlock/app/SherlockFragment.java 
-   -o /tmp/SherlockFragmentFolded.java 
-  ```
-
-which will output the folded file to /tmp/SherlockFragmentFolded.java. 
-
-Running TASSAL VSM
-------------------
-
-The *codesum.lm.tui* package contains both the Java and command line interface.
-
-#### Autofolding a source file
-
-*codesum.lm.tui.FoldSourceFileVSM* folds a specified source file. It has the following command line options:
-
-* **-f**    souce file to autofold
-* **-c**    desired compression ratio for the file
-* **-o**   (optional)  where to output the folded file
-
-See the individual file javadocs for information on the Java interface.
-
-In Eclipse you can set command line arguments for the TASSAL interface using the *Run Configurations...* menu option. 
-
-#### Example Usage
-
-A complete example using the command line interface on a runnable jar.
-
-First clone the ActionBarSherlock project into /tmp/java_projects/
-
-  ```sh 
-  $ mkdir /tmp/java_projects/
-  $ cd /tmp/java_projects/
-  $ git clone https://github.com/JakeWharton/ActionBarSherlock.git 
-  ```
-
-We can then fold a specific file 
-
-  ```sh 
-  $ java -cp tassal-1.1-SNAPSHOT.jar codesum.lm.tui.FoldSourceFileVSM     
-   -c 50
    -f /tmp/java_projects/ActionBarSherlock/actionbarsherlock/src/com/actionbarsherlock/app/SherlockFragment.java 
    -o /tmp/SherlockFragmentFolded.java 
   ```

@@ -71,7 +71,7 @@ public class TopicSum {
 
 		// Background topics
 		for (int b = 0; b < Topic.nBackTopics; b++) {
-			System.out.printf("%n%n+++++ Top Java Topic %d tokens:", b);
+			System.out.printf("%n%n+++++ Top Background Topic %d tokens:", b);
 			printTop25(gibbsSampler.getBackgroundTopic(b), gibbsSampler);
 			System.out.println("\nToken count: "
 					+ gibbsSampler.getBackgroundTopic(b).getTotalTokenCount());
