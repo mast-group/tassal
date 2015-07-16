@@ -2,6 +2,9 @@ package codesum.lm.topicsum;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.List;
+
+import org.apache.commons.io.FileUtils;
 
 import com.esotericsoftware.kryo.DefaultSerializer;
 import com.esotericsoftware.kryo.serializers.CompatibleFieldSerializer;
@@ -20,27 +23,40 @@ public class Cluster implements Serializable {
 		clusterLoc = f;
 		ndocs = 0;
 
-		docs = new Document[clusterLoc.listFiles().length];
+		docs = new Document[getFilesInCluster(null).size()];
 
 		getDocs(alphabet);
 	}
 
 	private void getDocs(final Tokens alphabet) {
+		final List<File> files = getFilesInCluster(null);
+		
+		int i=0;
+		int total = files.size();
+		//for (int i = 0; i < clusterLoc.listFiles().length; i++) {
 
-		for (int i = 0; i < clusterLoc.listFiles().length; i++) {
-
+		for(File file : files){
 			if (i % 100 == 0)
-				System.out.println("At file " + i + " of "
-						+ clusterLoc.listFiles().length);
+				System.out.println("At file " + i + " of " + total);
 
 			// if the file is not a hidden file (shouldn't need this)
-			if (clusterLoc.listFiles()[i].getName().charAt(0) != '.'
-					&& clusterLoc.listFiles()[i].getName().charAt(
-							clusterLoc.listFiles()[i].getName().length() - 1) != '~') {
-				docs[i] = new Document(clusterLoc.listFiles()[i], alphabet);
+			if (file.getName().charAt(0) != '.'
+					&& file.getName().charAt(
+							file.getName().length() - 1) != '~') {
+				docs[i] = new Document(file, alphabet);
 				ndocs++;
 			}
+			i++;
 		}
+	}
+
+	private List<File> getFilesInCluster(String[] extns) {
+		if(extns == null){
+			extns = new String[] { "java" };
+		}
+		// Get all files with extn extension in the cluster
+		final List<File> files = (List<File>) FileUtils.listFiles(clusterLoc, extns, true);
+		return files;
 	}
 
 	public int ndocs() {
@@ -58,7 +74,7 @@ public class Cluster implements Serializable {
 	public int getIndexDoc(final String fileName) {
 
 		for (int di = 0; di < ndocs; di++) {
-			if ((docs[di].getName()).equals(fileName))
+			if ((docs[di].getDocLoc().getPath().contains(fileName)))
 				return di;
 		}
 		return -1;
