@@ -71,10 +71,12 @@ public class Cluster implements Serializable {
 		return clusterLoc.getName();
 	}
 
-	public int getIndexDoc(final String fileName) {
+	public int getIndexDoc(final String filePath) {
 
 		for (int di = 0; di < ndocs; di++) {
-			if ((docs[di].getDocLoc().getPath().contains(fileName)))
+			//Just check if the relative filepath of a java file
+			// is a subset of the token document location. 
+			if ((docs[di].getDocLoc().getPath().contains(filePath)))
 				return di;
 		}
 		return -1;

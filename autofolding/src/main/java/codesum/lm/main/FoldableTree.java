@@ -412,8 +412,10 @@ public class FoldableTree {
 				unfoldedNodeIDs.add(fn.nodeID);
 
 				// Get specified profit
-				final String curFile = FilenameUtils
-						.getBaseName(file.getName());
+				final String curFile = CodeUtils.getRelativePath(file,
+						set.curProj);
+				// final String curFile =
+				// FilenameUtils.getBaseName(file.getName());
 				if (set.profitType.matches("KLDiv.*"))
 					profit = -1
 							* sampler.getKLDiv(set.profitType,

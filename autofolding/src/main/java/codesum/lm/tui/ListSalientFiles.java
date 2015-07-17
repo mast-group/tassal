@@ -103,7 +103,7 @@ public class ListSalientFiles {
 				lineNumbers.add(i);
 			}
 			
-			final String curFile = StringUtils.removeStart(file.getPath(), workingDir + project + "/");
+			final String curFile = CodeUtils.getRelativePath(file, project);
 			
 			Double klScore = -1
 					* sampler.getKLDiv("KLDivProj",

@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 
@@ -59,7 +58,8 @@ public class CodeUtils {
 				count++;
 
 				String originalPath = file.getPath();
-				String outPutRelativePath = StringUtils.removeStart(originalPath, set.projectsFolder + curProj + "/");
+				String outPutRelativePath = StringUtils.removeStart(
+						originalPath, set.projectsFolder + curProj + "/");
 				String outputFilePath = outFolder + outPutRelativePath;
 
 				// Write out file with one token line per foldable node
@@ -82,6 +82,9 @@ public class CodeUtils {
 		}
 	}
 
+	/**
+	 * Get nodewise token list for a file.
+	 */
 	public static List<String> getTokenList(File file, Settings set) {
 		// Create folded tree and populate nodes with term vectors
 		final TreeCreatorVisitor tcv = new TreeCreatorVisitor();
@@ -95,15 +98,7 @@ public class CodeUtils {
 			for (final String token : tcv.getIDTokens().get(nodeID)){
 				sb.append(token + " ");
 			}
-				//out.print(token + " ");
-			//out.print("\n");
 			tokenList.add(sb.toString());
-		}
-		
-		if(file.getPath().contains("WordCountSetup.java")){
-			System.out.println("At file : " + file.getPath());
-			for(String line: tokenList)
-				System.out.println(line);
 		}
 		
 		return tokenList;
@@ -256,6 +251,11 @@ public class CodeUtils {
 
 	public static ArrayList<Integer> range(final int start, final int stop) {
 		return range(start, stop, 1);
+	}
+	
+	public static String getRelativePath(File file, String relativeTo){
+		String prefix = StringUtils.substringBefore(file.getPath(), relativeTo);
+		return StringUtils.removeStart(file.getPath(), prefix);
 	}
 
 }
