@@ -136,6 +136,23 @@ This trains the topic model for 100 iterations and outputs the model to /tmp/. W
 
 which will output the folded file to /tmp/SherlockFragmentFolded.java. 
 
+Summarizing a Project
+---------------------
+
+TASSAL is also able to summmarize an entire project by finding the top source files (and therefore classes) representative of that project. These top project files can then be autofolded using TASSAL as above (see [Autofolding a source file](#autofolding-a-source-file)).
+
+*codesum.lm.tui.ListSalientFiles* lists the most representative source files for a given project. It has the following command line options:
+
+* **-s**   working directory where the topic model creates necessary files (same as above)
+* **-d**   directory containing java projects
+* **-p**   project to summarize
+* **-c**   desired compression ratio (% of project files to list)
+* **-b**   (optional)  background topic to back off to (0-2, default=2) 
+* **-o**   (optional)  where to save the salient files
+* **-i**   (optional)  whether to ignore unit test files (default=true) 
+
+Note that this requires the topic model to first be trained on the given project (see [Training the source code topic model](#training-the-source-code-topic-model) above). 
+
 Bugs
 ----
 
