@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 
 import codemining.java.codeutils.JavaASTExtractor;
@@ -56,25 +57,51 @@ public class CodeUtils {
 							+ files.size());
 				count++;
 
+				String originalPath = file.getPath();
+				String outPutRelativePath = StringUtils.removeStart(
+						originalPath, set.projectsFolder + curProj + "/");
+				String outputFilePath = outFolder + outPutRelativePath;
+
 				// Write out file with one token line per foldable node
-				final File outFile = new File(outFolder + file.getName());
+				final File outFile = new File(outputFilePath);
+				File parent = outFile.getParentFile();
+				if(!parent.exists() && !parent.mkdirs()){
+				    throw new IllegalStateException("Couldn't create dir: " + parent);
+				}
 				final PrintWriter out = new PrintWriter(outFile, "UTF-8");
 
-				// Create folded tree and populate nodes with term vectors
-				final TreeCreatorVisitor tcv = new TreeCreatorVisitor();
-
-				tcv.process(getAST(file), file, null, null, set);
-
-				// Save foldable node tokens ordered by nodeID
-				for (int nodeID = 0; nodeID < tcv.getTree().getNodeCount(); nodeID++) {
-					for (final String token : tcv.getIDTokens().get(nodeID))
-						out.print(token + " ");
+				List<String> tokenList = getTokenList(file, set);
+				
+				for(String token: tokenList){
+					out.print(token + " ");
 					out.print("\n");
 				}
 
 				out.close();
 			}
 		}
+	}
+
+	/**
+	 * Get nodewise token list for a file.
+	 */
+	public static List<String> getTokenList(File file, Settings set) {
+		// Create folded tree and populate nodes with term vectors
+		final TreeCreatorVisitor tcv = new TreeCreatorVisitor();
+
+		tcv.process(getAST(file), file, null, null, set);
+
+		List<String> tokenList = new ArrayList<String>();
+		// Save foldable node tokens ordered by nodeID
+		for (int nodeID = 0; nodeID < tcv.getTree().getNodeCount(); nodeID++) {
+			StringBuilder sb = new StringBuilder();
+			for (final String token : tcv.getIDTokens().get(nodeID)){
+				sb.append(token + " ");
+			}
+			tokenList.add(sb.toString());
+		}
+		
+		return tokenList;
 	}
 
 	/**
@@ -224,6 +251,11 @@ public class CodeUtils {
 
 	public static ArrayList<Integer> range(final int start, final int stop) {
 		return range(start, stop, 1);
+	}
+	
+	public static String getRelativePath(File file, String relativeTo){
+		String prefix = StringUtils.substringBefore(file.getPath(), relativeTo);
+		return StringUtils.removeStart(file.getPath(), prefix);
 	}
 
 }
