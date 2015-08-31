@@ -7,11 +7,12 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
 
 import codesum.lm.main.CodeUtils;
 import codesum.lm.main.Settings;
 import codesum.lm.topicsum.GibbsSampler;
+import codesum.lm.topicsum.Topic;
+import codesum.lm.topicsum.TopicSum;
 import codesum.lm.tui.FoldSourceFile.checkBackoffTopic;
 
 import com.beust.jcommander.JCommander;
@@ -77,6 +78,32 @@ public class ListSalientFiles {
 		final GibbsSampler sampler = GibbsSampler.readCorpus(samplerLoc
 				+ "TopicSum/Source/SamplerState.ser");
 		
+		final int ci = sampler.getCorpus().getIndexProject(project);
+		Topic projectTopic = sampler.getContentTopic(ci);
+		
+
+		System.out.println("===============================================================");
+		System.out.println("Top 25 background 1 words");
+		System.out.println("===============================================================");
+		TopicSum.printTop25(sampler.getBackgroundTopic(0), sampler);
+		
+
+		System.out.println("===============================================================");
+		System.out.println("Top 25 background 2 words");
+		System.out.println("===============================================================");
+		TopicSum.printTop25(sampler.getBackgroundTopic(1), sampler);
+		
+
+		System.out.println("===============================================================");
+		System.out.println("Top 25 background 3 words");
+		System.out.println("===============================================================");
+		TopicSum.printTop25(sampler.getBackgroundTopic(2), sampler);
+		
+		System.out.println("===============================================================");
+		System.out.println("Top 25 words for  : " + project);
+		System.out.println("===============================================================");
+		TopicSum.printTop25(projectTopic, sampler);
+		System.out.println("===============================================================");
 		// Get all java files in source folder
 		final List<File> files = (List<File>) FileUtils.listFiles(new File(
 				workingDir + project + "/"),
@@ -123,10 +150,11 @@ public class ListSalientFiles {
 			}
 		}
 		
-		int desiredNumberOfFiles = fileScores.size() * compressionRatio/100;
+		//int desiredNumberOfFiles = fileScores.size() * compressionRatio/100;
+		int desiredNumberOfFiles = compressionRatio;
 		System.out.println("===============================================================");
 		System.out.println("Listing salient files for project: " + project);
-		System.out.println("Total files: " + fileScores.size() + "\t" + " Reducing to: " + desiredNumberOfFiles);
+		System.out.println("Total files: " + fileScores.size() + "\t" + " Reducing to top: " + desiredNumberOfFiles);
 		System.out.println("===============================================================");
 		
 		Collections.sort(fileScores);
@@ -135,18 +163,26 @@ public class ListSalientFiles {
 			System.out.println(fileScores.get(i).score + "\t" +  fileScores.get(i).filePath);
 		}
 		
-		System.out.println("\n \n===============================================================");
+		System.out.println("===============================================================");
+		System.out.println("Listing least salient files for project: " + project);
+		System.out.println("Total files: " + fileScores.size() + "\t" + " Reducing to bottom: " + desiredNumberOfFiles);
+		System.out.println("===============================================================");
+		int j = fileScores.size()-1;
+		for(i=0; i<desiredNumberOfFiles; i++){
+			System.out.println(fileScores.get(j-i).score + "\t" +  fileScores.get(j-i).filePath);
+		}
+		/*System.out.println("\n \n===============================================================");
 		System.out.println("Next 20 important files :");
 		System.out.println("===============================================================");
 		
 		for(int j=0; i<fileScores.size() && j < 20; j++, i++){
 			System.out.println(fileScores.get(i).score + "\t" +  fileScores.get(i).filePath);
-		}
+		}*/
 		
 		
 		
 	}
-	
+
 	private static class FileScore implements Comparable<FileScore>{
 
 		String filePath;

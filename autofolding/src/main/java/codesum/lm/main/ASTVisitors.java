@@ -370,6 +370,25 @@ public class ASTVisitors {
 			else
 				identifierList.add(token);
 		}
+		
+		public void process(final CompilationUnit unit, final String filecontent, final Settings set){
+			fileString = filecontent;
+			// Initialize settings
+			splitTokens = set.splitTokens;
+			tokenizeComments = set.tokenizeComments;
+			foldLineComments = set.foldLineComments;
+
+			// Create foldable tree
+			tree = new FoldableTree(unit, null, null, null, set);
+			cu = unit;
+			unit.accept(this);
+
+			// Add comments and imports to tree and set levels
+			addCommentsTree();
+			addImportsTree();
+			tree.setLevels();
+
+		}
 
 		public void process(final CompilationUnit unit, final File file,
 				final TokenVector fv, final GibbsSampler smp, final Settings set) {
