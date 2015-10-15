@@ -45,9 +45,9 @@ TASSAL VSM can run in real-time.
 
 *codesum.lm.tui.FoldSourceFileVSM* folds a specified source file. It has the following command line options:
 
-* **-f**    souce file to autofold
-* **-c**    desired compression ratio for the file
-* **-o**   (optional)  where to save the folded file
+* **-f**  &nbsp;  souce file to autofold
+* **-c**  &nbsp;  desired compression ratio for the file
+* **-o**  &nbsp; (optional)  where to save the folded file
 
 See the individual file javadocs in *codesum.lm.tui* for information on the Java interface.
 In Eclipse you can set command line arguments for the TASSAL interface using the *Run Configurations...* menu option. 
@@ -86,9 +86,9 @@ While this is slower than using a VSM model, it is considerably more accurate.
 
 *codesum.lm.tui.TrainTopicModel* trains the underlying topic model. It has the following command line options:
 
-* **-d**   directory containing java projects
-* **-w**   working directory where the topic model creates necessary files
-* **-i**   (optional)  no. iterations to train the topic model for.
+* **-d** &nbsp;  directory containing java projects
+* **-w** &nbsp;  working directory where the topic model creates necessary files
+* **-i** &nbsp;  (optional)  no. iterations to train the topic model for.
 
 This will output a summary of the top 25 tokens in some of the discovered topics. 
 
@@ -96,12 +96,12 @@ This will output a summary of the top 25 tokens in some of the discovered topics
 
 *codesum.lm.tui.FoldSourceFile* folds a specified source file. It has the following command line options:
 
-* **-w**   working directory where the topic model creates necessary files (same as above)
-* **-f**   souce file to autofold
-* **-p**   project containing the file to fold
-* **-c**   desired compression ratio for the file
-* **-b**   (optional)  background topic to back off to (0-2, default=2) 
-* **-o**   (optional)  where to save the folded file
+* **-w** &nbsp;  working directory where the topic model creates necessary files (same as above)
+* **-f** &nbsp;  souce file to autofold
+* **-p** &nbsp;  project containing the file to fold
+* **-c** &nbsp;  desired compression ratio for the file
+* **-b** &nbsp;  (optional)  background topic to back off to (0-2, default=2) 
+* **-o** &nbsp;  (optional)  where to save the folded file
 
 See the individual file javadocs in *codesum.lm.tui* for information on the Java interface.
 In Eclipse you can set command line arguments for the TASSAL interface using the *Run Configurations...* menu option. 
@@ -143,13 +143,13 @@ TASSAL is also able to summmarize an entire project by finding the top source fi
 
 *codesum.lm.tui.ListSalientFiles* lists the most representative source files for a given project. It has the following command line options:
 
-* **-s**   working directory where the topic model creates necessary files (same as above)
-* **-d**   directory containing java projects
-* **-p**   project to summarize
-* **-c**   desired compression ratio (% of project files to list)
-* **-b**   (optional)  background topic to back off to (0-2, default=2) 
-* **-o**   (optional)  where to save the salient files
-* **-i**   (optional)  whether to ignore unit test files (default=true) 
+* **-s** &nbsp;  working directory where the topic model creates necessary files (same as above)
+* **-d** &nbsp;  directory containing java projects
+* **-p** &nbsp;  project to summarize
+* **-c** &nbsp;  desired compression ratio (% of project files to list)
+* **-b** &nbsp;  (optional)  background topic to back off to (0-2, default=2) 
+* **-o** &nbsp;  (optional)  where to save the salient files
+* **-i** &nbsp;  (optional)  whether to ignore unit test files (default=true) 
 
 Note that this requires the topic model to first be trained on the given project (see [Training the source code topic model](#training-the-source-code-topic-model) above). 
 
