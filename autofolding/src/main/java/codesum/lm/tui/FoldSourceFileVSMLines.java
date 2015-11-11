@@ -37,11 +37,12 @@ public class FoldSourceFileVSMLines extends FoldSourceFileVSM {
 	}
 
 	/**
-	 * Fold given source file and return list of folded LOC.
+	 * Fold given source file and return list of folded nodes. Each folded node
+	 * is a range of folded lines.
 	 *
 	 * See {@link #foldSourceFileVSM(File,int,File)}
 	 */
-	public static ArrayList<Integer> foldSourceFileVSMLines(final File file, final int compressionRatio,
+	public static ArrayList<Range<Integer>> foldSourceFileVSMLines(final File file, final int compressionRatio,
 			final File outFile) {
 
 		// Set paths and default code folder settings
@@ -67,8 +68,8 @@ public class FoldSourceFileVSMLines extends FoldSourceFileVSM {
 		final ArrayList<Range<Integer>> unfoldedFolds = UnfoldAlgorithms.unfoldTree(tcv.getTree(),
 				new GreedyVSMAlgorithm(), false);
 
-		// Get folded LOC
-		final ArrayList<Integer> foldedLOC = CodeUtils.getFoldedLines(file, unfoldedFolds, tcv.allFolds);
+		// Get folded nodes as LOC ranges
+		final ArrayList<Range<Integer>> foldedLOC = CodeUtils.getFoldedLOCRanges(file, unfoldedFolds, tcv.allFolds);
 
 		// Save folds to file if requested
 		if (outFile != null)

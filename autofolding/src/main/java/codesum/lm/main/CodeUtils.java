@@ -245,15 +245,15 @@ public class CodeUtils {
 		return StringUtils.removeStart(file.getPath(), prefix);
 	}
 
-	/** Convert unfolded char regions to folded LOCs */
-	public static ArrayList<Integer> getFoldedLines(final File sourceFile,
+	/** Convert unfolded char regions to folded LOC regions */
+	public static ArrayList<Range<Integer>> getFoldedLOCRanges(final File sourceFile,
 			final ArrayList<Range<Integer>> unfoldedFolds, final ArrayList<Range<Integer>> allFolds) {
 
 		// Read file to string
 		final String fileString = readFileString(sourceFile);
 
 		// Convert regions to unfold into lines to fold
-		final ArrayList<Integer> foldedLines = Lists.newArrayList();
+		final ArrayList<Range<Integer>> foldedLOCRanges = Lists.newArrayList();
 
 		for (final Range<Integer> fold : allFolds) {
 			if (!unfoldedFolds.contains(fold)) { // If folded
@@ -267,12 +267,11 @@ public class CodeUtils {
 				// Get end line
 				final int endLine = fileString.substring(0, fold.upperEndpoint()).split("\n").length;
 
-				// Add folded LOCs
-				for (int line = startLine; line <= endLine; line++)
-					foldedLines.add(line);
+				// Add folded LOC range
+				foldedLOCRanges.add(Range.closed(startLine, endLine));
 			}
 		}
-		return foldedLines;
+		return foldedLOCRanges;
 	}
 
 }

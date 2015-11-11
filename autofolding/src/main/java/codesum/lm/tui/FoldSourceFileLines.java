@@ -37,12 +37,13 @@ public class FoldSourceFileLines extends FoldSourceFile {
 	}
 
 	/**
-	 * Fold given source file and return list of folded LOC.
+	 * Fold given source file and return list of folded nodes. Each folded node
+	 * is a range of folded lines.
 	 *
 	 * See {@link #foldSourceFile(String,File,String,int,int,File)}
 	 */
-	public static ArrayList<Integer> foldSourceFileLines(final String workingDir, final File file, final String project,
-			final int compressionRatio, final int backoffTopic, final File outFile) {
+	public static ArrayList<Range<Integer>> foldSourceFileLines(final String workingDir, final File file,
+			final String project, final int compressionRatio, final int backoffTopic, final File outFile) {
 
 		// Set paths and default code folder settings
 		final Settings set = new Settings();
@@ -67,8 +68,8 @@ public class FoldSourceFileLines extends FoldSourceFile {
 		final ArrayList<Range<Integer>> unfoldedFolds = UnfoldAlgorithms.unfoldTree(tcv.getTree(),
 				new GreedyTopicSumAlgorithm(), false);
 
-		// Get folded LOC
-		final ArrayList<Integer> foldedLOC = CodeUtils.getFoldedLines(file, unfoldedFolds, tcv.allFolds);
+		// Get folded nodes as LOC ranges
+		final ArrayList<Range<Integer>> foldedLOC = CodeUtils.getFoldedLOCRanges(file, unfoldedFolds, tcv.allFolds);
 
 		// Save folds to file if requested
 		if (outFile != null)
