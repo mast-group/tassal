@@ -268,7 +268,12 @@ public class CodeUtils {
 				final int endLine = fileString.substring(0, fold.upperEndpoint()).split("\n").length;
 
 				// Add folded LOC range
-				foldedLOCRanges.add(Range.closed(startLine, endLine));
+				try {
+					foldedLOCRanges.add(Range.closed(startLine, endLine));
+				} catch (final IllegalArgumentException e) {
+					System.out.println(
+							"WARNING: Invalid Range for " + sourceFile + ": [" + startLine + "," + endLine + "]");
+				}
 			}
 		}
 		return foldedLOCRanges;
