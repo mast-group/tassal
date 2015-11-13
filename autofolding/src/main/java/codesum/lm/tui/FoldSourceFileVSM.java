@@ -29,7 +29,7 @@ public class FoldSourceFileVSM {
 		@Parameter(names = { "-f", "--file" }, description = "Source file to fold", required = true)
 		File file;
 
-		@Parameter(names = { "-c", "--compression" }, description = "Desired compression ratio", required = true)
+		@Parameter(names = { "-c", "--compression" }, description = "Desired compression ratio (%)", required = true)
 		int compressionRatio;
 
 		@Parameter(names = { "-o", "--outFile" }, description = "Where to save folded source file")
@@ -75,7 +75,7 @@ public class FoldSourceFileVSM {
 
 		// Main code folder settings
 		set.profitType = "CSimFile";
-		set.compressionRatio = 100 - compressionRatio;
+		set.compressionRatio = compressionRatio;
 
 		// Generate AST
 		final CompilationUnit cu = CodeUtils.getAST(file);

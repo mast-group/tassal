@@ -46,7 +46,7 @@ TASSAL VSM can run in real-time.
 *codesum.lm.tui.FoldSourceFileVSM* folds a specified source file. It has the following command line options:
 
 * **-f**  &nbsp;  souce file to autofold
-* **-c**  &nbsp;  desired compression ratio for the file
+* **-c**  &nbsp;  desired compression ratio for the file (%)
 * **-o**  &nbsp; (optional)  where to save the folded file
 
 See the individual file javadocs in *codesum.lm.tui* for information on the Java interface.
@@ -67,7 +67,7 @@ First clone the ActionBarSherlock project into /tmp/java_projects/
 We can then fold a specific file 
 
   ```sh 
-  $ java -cp tassal-1.1-SNAPSHOT.jar codesum.lm.tui.FoldSourceFileVSM     
+  $ java -cp tassal/target/tassal-1.1-SNAPSHOT.jar codesum.lm.tui.FoldSourceFileVSM     
    -c 50
    -f /tmp/java_projects/ActionBarSherlock/actionbarsherlock/src/com/actionbarsherlock/app/SherlockFragment.java 
    -o /tmp/SherlockFragmentFolded.java 
@@ -99,7 +99,7 @@ This will output a summary of the top 25 tokens in some of the discovered topics
 * **-w** &nbsp;  working directory where the topic model creates necessary files (same as above)
 * **-f** &nbsp;  souce file to autofold
 * **-p** &nbsp;  project containing the file to fold
-* **-c** &nbsp;  desired compression ratio for the file
+* **-c** &nbsp;  desired compression ratio for the file (%)
 * **-b** &nbsp;  (optional)  background topic to back off to (0-2, default=2) 
 * **-o** &nbsp;  (optional)  where to save the folded file
 
@@ -121,14 +121,14 @@ First clone the ActionBarSherlock project into /tmp/java_projects/
 Now you can train the topic model on the java projects in /tmp/java_projects/
 
   ```sh 
-  $ java -cp tassal-1.1-SNAPSHOT.jar codesum.lm.tui.TrainTopicModel   
+  $ java -cp tassal/target/tassal-1.1-SNAPSHOT.jar codesum.lm.tui.TrainTopicModel   
    -d /tmp/java_projects/  -w /tmp/ -i 100 
   ```
 
 This trains the topic model for 100 iterations and outputs the model to /tmp/. We can then fold a specific file 
 
   ```sh 
-  $ java -cp tassal-1.1-SNAPSHOT.jar codesum.lm.tui.FoldSourceFile     
+  $ java -cp tassal/target/tassal-1.1-SNAPSHOT.jar codesum.lm.tui.FoldSourceFile     
    -w /tmp/  -c 50 -p ActionBarSherlock 
    -f /tmp/java_projects/ActionBarSherlock/actionbarsherlock/src/com/actionbarsherlock/app/SherlockFragment.java 
    -o /tmp/SherlockFragmentFolded.java 

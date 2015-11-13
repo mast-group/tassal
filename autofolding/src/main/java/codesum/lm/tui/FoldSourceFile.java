@@ -37,7 +37,7 @@ public class FoldSourceFile {
 		@Parameter(names = { "-p", "--project" }, description = "Project containing the file to fold", required = true)
 		String project;
 
-		@Parameter(names = { "-c", "--compression" }, description = "Desired compression ratio", required = true)
+		@Parameter(names = { "-c", "--compression" }, description = "Desired compression ratio (%)", required = true)
 		int compressionRatio;
 
 		@Parameter(names = { "-b",
@@ -96,7 +96,7 @@ public class FoldSourceFile {
 		set.profitType = "KLDivFile";
 		set.backoffTopicID = backoffTopic;
 		set.curProj = project;
-		set.compressionRatio = 100 - compressionRatio;
+		set.compressionRatio = compressionRatio;
 
 		// Load Topic Model
 		System.out.println("Deserializing the model...");

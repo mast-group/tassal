@@ -52,7 +52,7 @@ public class FoldSourceFileLines extends FoldSourceFile {
 		set.profitType = "KLDivFile";
 		set.backoffTopicID = backoffTopic;
 		set.curProj = project;
-		set.compressionRatio = 100 - compressionRatio;
+		set.compressionRatio = compressionRatio;
 
 		// Load Topic Model
 		final GibbsSampler sampler = GibbsSampler.readCorpus(workingDir + "TopicSum/Source/SamplerState.ser");

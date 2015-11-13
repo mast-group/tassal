@@ -50,7 +50,7 @@ public class FoldSourceFileVSMLines extends FoldSourceFileVSM {
 
 		// Main code folder settings
 		set.profitType = "CSimFile";
-		set.compressionRatio = 100 - compressionRatio;
+		set.compressionRatio = compressionRatio;
 
 		// Generate AST
 		final CompilationUnit cu = CodeUtils.getAST(file);
