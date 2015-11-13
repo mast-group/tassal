@@ -38,7 +38,7 @@ public class FoldSourceFileVSMLines extends FoldSourceFileVSM {
 
 	/**
 	 * Fold given source file and return list of folded nodes. Each folded node
-	 * is a range of folded lines.
+	 * is a 1-indexed range of folded lines.
 	 *
 	 * See {@link #foldSourceFileVSM(File,int,File)}
 	 */
@@ -73,7 +73,7 @@ public class FoldSourceFileVSMLines extends FoldSourceFileVSM {
 
 		// Save folds to file if requested
 		if (outFile != null)
-			CodeUtils.saveStringFile(Joiner.on(" ").join(foldedLOC), outFile);
+			CodeUtils.saveStringFile(Joiner.on(System.getProperty("line.separator")).join(foldedLOC), outFile);
 
 		return foldedLOC;
 	}

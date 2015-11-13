@@ -258,22 +258,12 @@ public class CodeUtils {
 		for (final Range<Integer> fold : allFolds) {
 			if (!unfoldedFolds.contains(fold)) { // If folded
 
-				// Get start line +1 (first line of char range isn't folded)
-				int startLine = fileString.substring(0, fold.lowerEndpoint()).split("\n").length;
-				// unless fold is the whole file
-				if (fold.lowerEndpoint() != 0 || fold.upperEndpoint() != fileString.length())
-					startLine += 1;
-
-				// Get end line
+				// Get start and end line
+				final int startLine = fileString.substring(0, fold.lowerEndpoint()).split("\n").length;
 				final int endLine = fileString.substring(0, fold.upperEndpoint()).split("\n").length;
 
 				// Add folded LOC range
-				try {
-					foldedLOCRanges.add(Range.closed(startLine, endLine));
-				} catch (final IllegalArgumentException e) {
-					System.out.println(
-							"WARNING: Invalid Range for " + sourceFile + ": [" + startLine + "," + endLine + "]");
-				}
+				foldedLOCRanges.add(Range.closed(startLine, endLine));
 			}
 		}
 		return foldedLOCRanges;
