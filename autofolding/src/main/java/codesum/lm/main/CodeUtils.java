@@ -259,8 +259,8 @@ public class CodeUtils {
 			if (!unfoldedFolds.contains(fold)) { // If folded
 
 				// Get start and end line
-				final int startLine = fileString.substring(0, fold.lowerEndpoint()).split("\n").length;
-				final int endLine = fileString.substring(0, fold.upperEndpoint()).split("\n").length;
+				final int startLine = fileString.substring(0, fold.lowerEndpoint()).split("\n", -1).length;
+				final int endLine = fileString.substring(0, fold.upperEndpoint()).split("\n", -1).length;
 
 				// Add folded LOC range
 				foldedLOCRanges.add(Range.closed(startLine, endLine));
