@@ -12,6 +12,7 @@ import org.eclipse.jdt.core.dom.CompilationUnit;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multiset;
+import com.google.common.collect.Multisets;
 import com.google.common.collect.Range;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Table;
@@ -331,6 +332,9 @@ public class FoldableTree {
 			double profit = 0;
 			if (!fn.isUnfolded) {
 
+				// Add current node terms to unfolded
+				unfoldedTerms.addAll(fn.getTermFreqs());
+
 				// Calculate tf-idf weights
 				final TokenVector tv = new TokenVector(unfoldedTerms);
 
@@ -339,6 +343,9 @@ public class FoldableTree {
 					profit = tv.cosSim(fileVec);
 				else
 					throw new RuntimeException("Incorrect profit function!");
+
+				// Remove current node terms from unfolded
+				Multisets.removeOccurrences(unfoldedTerms, fn.getTermFreqs());
 
 				if (profit < 0) {
 					System.out.println("Profit: " + profit);
@@ -384,7 +391,7 @@ public class FoldableTree {
 			double profit = 0;
 			if (!fn.isUnfolded) {
 
-				// Add current node and terms to unfolded
+				// Add current node to unfolded
 				unfoldedNodeIDs.add(fn.nodeID);
 
 				// Get specified profit
@@ -397,7 +404,7 @@ public class FoldableTree {
 				else
 					throw new RuntimeException("Incorrect profit function!");
 
-				// Remove current node and terms from unfolded
+				// Remove current node from unfolded
 				unfoldedNodeIDs.remove(fn.nodeID);
 
 				if (profit < 0 && !set.profitType.matches("KLDiv.*")) {
