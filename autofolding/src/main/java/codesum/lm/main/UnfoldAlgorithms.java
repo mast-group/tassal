@@ -3,8 +3,13 @@ package codesum.lm.main;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 
 import org.eclipse.jdt.core.dom.ASTNode;
+
+import com.google.common.collect.Lists;
+import com.google.common.collect.Range;
+import com.google.common.collect.Sets;
 
 import codesum.lm.main.FoldableTree.FoldableNode;
 import codesum.lm.main.FoldableTree.GreedyNodeOp;
@@ -12,16 +17,11 @@ import codesum.lm.main.FoldableTree.GreedyTopicSumOptionsOp;
 import codesum.lm.main.FoldableTree.GreedyVSMOptionsOp;
 import codesum.lm.main.FoldableTree.Option;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Range;
-import com.google.common.collect.Sets;
-
 public class UnfoldAlgorithms {
 
 	/** Tree unfolding algorithm wrapper */
-	public static ArrayList<Range<Integer>> unfoldTree(final FoldableTree tree,
-			final GreedyUnfoldAlgorithm algorithm, final boolean debug) {
+	public static ArrayList<Range<Integer>> unfoldTree(final FoldableTree tree, final GreedyUnfoldAlgorithm algorithm,
+			final boolean debug) {
 
 		int count = -1;
 
@@ -33,16 +33,14 @@ public class UnfoldAlgorithms {
 			count++;
 
 			if (debug)
-				System.out.println("===== " + algorithm.getClass().getName()
-						+ " Step " + count + " starting...\n");
+				System.out.println("===== " + algorithm.getClass().getName() + " Step " + count + " starting...\n");
 
 			rangeSet = algorithm.unfold(tree, debug);
 			if (rangeSet != null)
 				folds.addAll(rangeSet);
 
 			if (debug)
-				System.out.println("===== " + algorithm.getClass().getName()
-						+ " Step " + count + " done, new budget: "
+				System.out.println("===== " + algorithm.getClass().getName() + " Step " + count + " done, new budget: "
 						+ tree.getBudget());
 
 		} while (rangeSet != null);
@@ -59,23 +57,21 @@ public class UnfoldAlgorithms {
 	 */
 	private static abstract class GreedyUnfoldAlgorithm {
 
-		HashSet<Range<Integer>> unfold(final FoldableTree tree,
-				final boolean debug) {
+		HashSet<Range<Integer>> unfold(final FoldableTree tree, final boolean debug) {
 
 			// Get NodeOp
 			final GreedyNodeOp greedyOptionsOp = getOptionsOP(tree);
 
 			// codeVec.resetMaxMin();
 			// Map foldable nodes to options structure
-			final HashMap<FoldableNode, Option> options = Maps.newHashMap();
+			final HashMap<FoldableNode, Option> options = new LinkedHashMap<>();
 
 			// For each FoldableNode calculate similarity of tf-idf weights for
 			// node and children to project and corpus
 			tree.getRoot().traverseLinesGreedy(greedyOptionsOp, 0, options);
 
 			// Get the best node according to provided method
-			final FoldableNode bestNode = getBestNode(options,
-					tree.getBudget(), debug);
+			final FoldableNode bestNode = getBestNode(options, tree.getBudget(), debug);
 
 			// If bestNode is empty exit
 			if (bestNode == null)
@@ -95,9 +91,8 @@ public class UnfoldAlgorithms {
 				addNodeToUnfolded(curNode);
 
 				if (debug)
-					System.out.println("Unfolding curNode cost: "
-							+ options.get(curNode).cost + " curNode node:\n "
-							+ curNode);
+					System.out.println(
+							"Unfolding curNode cost: " + options.get(curNode).cost + " curNode node:\n " + curNode);
 
 				rangeSet.add(curNode.getRange());
 				curNode = curNode.parent;
@@ -112,8 +107,7 @@ public class UnfoldAlgorithms {
 		protected abstract GreedyNodeOp getOptionsOP(FoldableTree tree);
 
 		/** Abstract method to get the best node */
-		protected abstract FoldableNode getBestNode(
-				HashMap<FoldableNode, Option> options, double budget,
+		protected abstract FoldableNode getBestNode(HashMap<FoldableNode, Option> options, double budget,
 				boolean debug);
 
 		/** Abstract method to add node to unfolded (GreedyTopicSum only) */
@@ -127,9 +121,8 @@ public class UnfoldAlgorithms {
 	public static class GreedyTopicSumAlgorithm extends GreedyUnfoldAlgorithm {
 
 		@Override
-		protected FoldableNode getBestNode(
-				final HashMap<FoldableNode, Option> options,
-				final double budget, final boolean debug) {
+		protected FoldableNode getBestNode(final HashMap<FoldableNode, Option> options, final double budget,
+				final boolean debug) {
 
 			double maxProfitPerCost = Double.NEGATIVE_INFINITY;
 			double bestProfit = 0;
@@ -154,8 +147,7 @@ public class UnfoldAlgorithms {
 
 					// Print profit per cost stats
 					if (debug) {
-						printProfitCostStats(fn, profit, cost, budget,
-								profitPerCost);
+						printProfitCostStats(fn, profit, cost, budget, profitPerCost);
 					}
 
 					// Set bestNode as node with max profit per unit cost
@@ -170,8 +162,7 @@ public class UnfoldAlgorithms {
 
 			// Print out bestNode and stats
 			if (debug && bestNode != null)
-				printBestNodeStats(bestNode, bestProfit, bestCost,
-						maxProfitPerCost);
+				printBestNodeStats(bestNode, bestProfit, bestCost, maxProfitPerCost);
 
 			return bestNode;
 
@@ -218,9 +209,8 @@ public class UnfoldAlgorithms {
 	public static class ShallowestFirst extends GreedyUnfoldAlgorithm {
 
 		@Override
-		protected FoldableNode getBestNode(
-				final HashMap<FoldableNode, Option> options,
-				final double budget, final boolean debug) {
+		protected FoldableNode getBestNode(final HashMap<FoldableNode, Option> options, final double budget,
+				final boolean debug) {
 
 			int minLevel = Integer.MAX_VALUE;
 			FoldableNode bestNode = null;
@@ -243,8 +233,7 @@ public class UnfoldAlgorithms {
 
 					// Print node cost stats
 					if (debug)
-						System.out.println("\n+++++ Node: " + fn + "Cost: "
-								+ cost + " Budget: " + budget);
+						System.out.println("\n+++++ Node: " + fn + "Cost: " + cost + " Budget: " + budget);
 
 					// Set bestNode as node with min level
 					if (level < minLevel) {
@@ -258,9 +247,8 @@ public class UnfoldAlgorithms {
 
 			// Print out bestNode and stats
 			if (debug && bestNode != null)
-				System.out.println("\n+=+=+ bestNode " + bestNode.printRange()
-						+ ", cost: " + options.get(bestNode).cost + " Level: "
-						+ minLevel);
+				System.out.println("\n+=+=+ bestNode " + bestNode.printRange() + ", cost: " + options.get(bestNode).cost
+						+ " Level: " + minLevel);
 
 			return bestNode;
 		}
@@ -284,9 +272,8 @@ public class UnfoldAlgorithms {
 	public static class LargestFirst extends GreedyUnfoldAlgorithm {
 
 		@Override
-		protected FoldableNode getBestNode(
-				final HashMap<FoldableNode, Option> options,
-				final double budget, final boolean debug) {
+		protected FoldableNode getBestNode(final HashMap<FoldableNode, Option> options, final double budget,
+				final boolean debug) {
 
 			int maxSize = Integer.MIN_VALUE;
 			FoldableNode bestNode = null;
@@ -309,9 +296,8 @@ public class UnfoldAlgorithms {
 
 					// Print node cost stats
 					if (debug)
-						System.out.println("\n+++++ Node: " + fn + "Cost: "
-								+ cost + " Budget: " + budget + " size: "
-								+ size);
+						System.out.println(
+								"\n+++++ Node: " + fn + "Cost: " + cost + " Budget: " + budget + " size: " + size);
 
 					// Set bestNode as node with max size
 					if (size > maxSize) {
@@ -325,8 +311,7 @@ public class UnfoldAlgorithms {
 
 			// Print out bestNode and stats
 			if (debug && bestNode != null)
-				System.out.println("\n+=+=+ bestNode " + bestNode.printRange()
-						+ ", cost: " + options.get(bestNode).cost
+				System.out.println("\n+=+=+ bestNode " + bestNode.printRange() + ", cost: " + options.get(bestNode).cost
 						+ " tf-size: " + maxSize);
 
 			return bestNode;
@@ -351,9 +336,8 @@ public class UnfoldAlgorithms {
 	public static class JavadocsFirst extends GreedyUnfoldAlgorithm {
 
 		@Override
-		protected FoldableNode getBestNode(
-				final HashMap<FoldableNode, Option> options,
-				final double budget, final boolean debug) {
+		protected FoldableNode getBestNode(final HashMap<FoldableNode, Option> options, final double budget,
+				final boolean debug) {
 
 			int maxScore = Integer.MIN_VALUE;
 			FoldableNode bestNode = null;
@@ -387,9 +371,8 @@ public class UnfoldAlgorithms {
 
 					// Print node cost stats
 					if (debug)
-						System.out.println("\n+++++ Node: " + fn + "Cost: "
-								+ cost + " Budget: " + budget + " score: "
-								+ score);
+						System.out.println(
+								"\n+++++ Node: " + fn + "Cost: " + cost + " Budget: " + budget + " score: " + score);
 
 					// Set bestNode as node with max score
 					if (score > maxScore) {
@@ -403,9 +386,8 @@ public class UnfoldAlgorithms {
 
 			// Print out bestNode and stats
 			if (debug && bestNode != null)
-				System.out.println("\n+=+=+ bestNode " + bestNode.printRange()
-						+ ", cost: " + options.get(bestNode).cost + " score: "
-						+ maxScore);
+				System.out.println("\n+=+=+ bestNode " + bestNode.printRange() + ", cost: " + options.get(bestNode).cost
+						+ " score: " + maxScore);
 
 			return bestNode;
 		}
@@ -422,24 +404,18 @@ public class UnfoldAlgorithms {
 	}
 
 	/** Print bestNode and stats */
-	public static void printBestNodeStats(final FoldableNode bestNode,
-			final double bestProfit, final int bestCost,
+	public static void printBestNodeStats(final FoldableNode bestNode, final double bestProfit, final int bestCost,
 			final double maxProfitPerCost) {
-		System.out.printf("%n+=+=+ bestNode " + bestNode.printRange()
-				+ ", bestCost: " + bestCost
-				+ " bestProfit: %.1e best Profit per unit Cost: %.1e%n",
-				bestProfit, maxProfitPerCost);
+		System.out.printf("%n+=+=+ bestNode " + bestNode.printRange() + ", bestCost: " + bestCost
+				+ " bestProfit: %.1e best Profit per unit Cost: %.1e%n", bestProfit, maxProfitPerCost);
 	}
 
 	/** Print profit, cost, profit per unit cost stats for each node */
-	public static void printProfitCostStats(final FoldableNode fn,
-			final double profit, final int cost, final double budget,
-			final double profitPerCost) {
+	public static void printProfitCostStats(final FoldableNode fn, final double profit, final int cost,
+			final double budget, final double profitPerCost) {
 
-		System.out.print("\n+++++ Node: " + fn + "Cost: " + cost + " Budget: "
-				+ budget);
-		System.out.printf("%n Profit: %.1e Profit per unit cost: %.1e%n",
-				profit, profitPerCost);
+		System.out.print("\n+++++ Node: " + fn + "Cost: " + cost + " Budget: " + budget);
+		System.out.printf("%n Profit: %.1e Profit per unit cost: %.1e%n", profit, profitPerCost);
 	}
 
 }

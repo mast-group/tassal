@@ -6,12 +6,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
-import org.apache.commons.io.FilenameUtils;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.CompilationUnit;
-
-import codesum.lm.topicsum.GibbsSampler;
-import codesum.lm.vsm.TokenVector;
 
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Lists;
@@ -19,6 +15,9 @@ import com.google.common.collect.Multiset;
 import com.google.common.collect.Range;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Table;
+
+import codesum.lm.topicsum.GibbsSampler;
+import codesum.lm.vsm.TokenVector;
 
 /**
  * Class to hold Foldable AST
@@ -34,8 +33,7 @@ public class FoldableTree {
 	private final Settings set;
 	private int nodeCount;
 
-	public FoldableTree(final CompilationUnit unit, final File fl,
-			final TokenVector fv, final GibbsSampler smpl,
+	public FoldableTree(final CompilationUnit unit, final File fl, final TokenVector fv, final GibbsSampler smpl,
 			final Settings settings) {
 		cu = unit;
 		file = fl;
@@ -91,14 +89,12 @@ public class FoldableTree {
 
 	/** Get terms from tree (indexed by node range) */
 	public HashMap<Range<Integer>, Multiset<String>> getTerms() {
-		return root.traverse(new GetTermsOP(),
-				new HashMap<Range<Integer>, Multiset<String>>());
+		return root.traverse(new GetTermsOP(), new HashMap<Range<Integer>, Multiset<String>>());
 	}
 
 	/** Get terms from tree (indexed by nodeID) */
 	public HashMap<Integer, Multiset<String>> getIDTerms() {
-		return root.traverse(new GetIDTermsOP(),
-				new HashMap<Integer, Multiset<String>>());
+		return root.traverse(new GetIDTermsOP(), new HashMap<Integer, Multiset<String>>());
 	}
 
 	@Override
@@ -185,9 +181,8 @@ public class FoldableTree {
 
 		@Override
 		public String toString() {
-			return "Level: " + level + " isUnfolded: " + isUnfolded
-					+ " - Range " + printRange() + " : \n " + nodeToString()
-					+ "raw-tfs: " + termFreqs + "\n";
+			return "Level: " + level + " isUnfolded: " + isUnfolded + " - Range " + printRange() + " : \n "
+					+ nodeToString() + "raw-tfs: " + termFreqs + "\n";
 		}
 
 		/** Remove child nodes from node string representation */
@@ -200,23 +195,18 @@ public class FoldableTree {
 
 		/** Get node range */
 		public Range<Integer> getRange() {
-			return Range.closed(node.getStartPosition(),
-					node.getStartPosition() + node.getLength() - 1);
+			return Range.closed(node.getStartPosition(), node.getStartPosition() + node.getLength() - 1);
 		}
 
 		/** Print node range in LOC */
 		public String printRange() {
-			return "("
-					+ cu.getLineNumber(node.getStartPosition())
-					+ ", "
-					+ cu.getLineNumber(node.getStartPosition()
-							+ node.getLength() - 1) + ")";
+			return "(" + cu.getLineNumber(node.getStartPosition()) + ", "
+					+ cu.getLineNumber(node.getStartPosition() + node.getLength() - 1) + ")";
 		}
 
 		/** Get length of node in LOC */
 		public int getNodeLOC() {
-			return cu.getLineNumber(node.getStartPosition() + node.getLength()
-					- 1)
+			return cu.getLineNumber(node.getStartPosition() + node.getLength() - 1)
 					- cu.getLineNumber(node.getStartPosition()) + 1;
 		}
 
@@ -235,8 +225,7 @@ public class FoldableTree {
 	}
 
 	public interface GreedyNodeOp {
-		public int performOp(FoldableNode fn, int prev,
-				HashMap<FoldableNode, Option> options);
+		public int performOp(FoldableNode fn, int prev, HashMap<FoldableNode, Option> options);
 	}
 
 	public static class ToStringOp implements NodeOp<String> {
@@ -259,21 +248,17 @@ public class FoldableTree {
 	/**
 	 * Add comment nodes to tree along with terms (if present)
 	 */
-	public class AddNodesOp implements
-			NodeOp<Table<?, ASTNode, ArrayList<String>>> {
+	public class AddNodesOp implements NodeOp<Table<?, ASTNode, ArrayList<String>>> {
 		@Override
-		public Table<?, ASTNode, ArrayList<String>> performOp(
-				final FoldableNode fn,
+		public Table<?, ASTNode, ArrayList<String>> performOp(final FoldableNode fn,
 				final Table<?, ASTNode, ArrayList<String>> prev) {
 
 			// Check if ASTNode has a FoldableNode parent
 			// If so, add it to a child FoldableNode (along with its terms)
-			for (final Table.Cell<?, ASTNode, ArrayList<String>> cell : prev
-					.cellSet()) {
+			for (final Table.Cell<?, ASTNode, ArrayList<String>> cell : prev.cellSet()) {
 
 				if (cell.getColumnKey() == fn.node) {
-					final FoldableNode fnChild = new FoldableNode(
-							(ASTNode) cell.getRowKey());
+					final FoldableNode fnChild = new FoldableNode((ASTNode) cell.getRowKey());
 					fnChild.addTerms(cell.getValue());
 					fn.addChild(fnChild);
 				}
@@ -283,11 +268,9 @@ public class FoldableTree {
 	}
 
 	/** Get HashMap of node range to terms for each node */
-	public static class GetTermsOP implements
-			NodeOp<HashMap<Range<Integer>, Multiset<String>>> {
+	public static class GetTermsOP implements NodeOp<HashMap<Range<Integer>, Multiset<String>>> {
 		@Override
-		public HashMap<Range<Integer>, Multiset<String>> performOp(
-				final FoldableNode fn,
+		public HashMap<Range<Integer>, Multiset<String>> performOp(final FoldableNode fn,
 				final HashMap<Range<Integer>, Multiset<String>> nodeTerms) {
 
 			// Add terms Multiset to nodeTerms HashMap
@@ -298,11 +281,9 @@ public class FoldableTree {
 	}
 
 	/** Get nodeID to terms for each node */
-	public static class GetIDTermsOP implements
-			NodeOp<HashMap<Integer, Multiset<String>>> {
+	public static class GetIDTermsOP implements NodeOp<HashMap<Integer, Multiset<String>>> {
 		@Override
-		public HashMap<Integer, Multiset<String>> performOp(
-				final FoldableNode fn,
+		public HashMap<Integer, Multiset<String>> performOp(final FoldableNode fn,
 				final HashMap<Integer, Multiset<String>> nodeTerms) {
 
 			// Add terms Multiset to nodeTerms HashMap
@@ -315,8 +296,7 @@ public class FoldableTree {
 	/** Accumulate LOC in folded node and all its folded children */
 	public class BaselineOptionsOp implements GreedyNodeOp {
 		@Override
-		public int performOp(final FoldableNode fn, final int prev,
-				final HashMap<FoldableNode, Option> options) {
+		public int performOp(final FoldableNode fn, final int prev, final HashMap<FoldableNode, Option> options) {
 
 			// If node is unfolded, cost is zero
 			if (fn.isUnfolded) {
@@ -345,16 +325,13 @@ public class FoldableTree {
 		}
 
 		@Override
-		public int performOp(final FoldableNode fn, final int prev,
-				final HashMap<FoldableNode, Option> options) {
+		public int performOp(final FoldableNode fn, final int prev, final HashMap<FoldableNode, Option> options) {
 
 			// If node is folded, calculate profit
 			double profit = 0;
 			if (!fn.isUnfolded) {
 
 				// Calculate tf-idf weights
-				final String curFile = FilenameUtils
-						.getBaseName(file.getName());
 				final TokenVector tv = new TokenVector(unfoldedTerms);
 
 				// Get VSM profit
@@ -401,8 +378,7 @@ public class FoldableTree {
 		}
 
 		@Override
-		public int performOp(final FoldableNode fn, final int prev,
-				final HashMap<FoldableNode, Option> options) {
+		public int performOp(final FoldableNode fn, final int prev, final HashMap<FoldableNode, Option> options) {
 
 			// If node is folded, calculate profit
 			double profit = 0;
@@ -412,15 +388,12 @@ public class FoldableTree {
 				unfoldedNodeIDs.add(fn.nodeID);
 
 				// Get specified profit
-				final String curFile = CodeUtils.getRelativePath(file,
-						set.curProj);
+				final String curFile = CodeUtils.getRelativePath(file, set.curProj);
 				// final String curFile =
 				// FilenameUtils.getBaseName(file.getName());
 				if (set.profitType.matches("KLDiv.*"))
-					profit = -1
-							* sampler.getKLDiv(set.profitType,
-									set.backoffTopicID, set.curProj, curFile,
-									unfoldedNodeIDs);
+					profit = -1 * sampler.getKLDiv(set.profitType, set.backoffTopicID, set.curProj, curFile,
+							unfoldedNodeIDs);
 				else
 					throw new RuntimeException("Incorrect profit function!");
 
