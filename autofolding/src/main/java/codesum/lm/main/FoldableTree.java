@@ -226,6 +226,8 @@ public class FoldableTree {
 	}
 
 	public interface GreedyNodeOp {
+		public void addNodeToUnfolded(final FoldableNode node);
+
 		public int performOp(FoldableNode fn, int prev, HashMap<FoldableNode, Option> options);
 	}
 
@@ -297,6 +299,10 @@ public class FoldableTree {
 	/** Accumulate LOC in folded node and all its folded children */
 	public class BaselineOptionsOp implements GreedyNodeOp {
 		@Override
+		public void addNodeToUnfolded(final FoldableNode node) {
+		}
+
+		@Override
 		public int performOp(final FoldableNode fn, final int prev, final HashMap<FoldableNode, Option> options) {
 
 			// If node is unfolded, cost is zero
@@ -321,6 +327,7 @@ public class FoldableTree {
 		// Containers for unfolded terms
 		private final Multiset<String> unfoldedTerms = HashMultiset.create();
 
+		@Override
 		public void addNodeToUnfolded(final FoldableNode node) {
 			unfoldedTerms.addAll(node.getTermFreqs());
 		}
@@ -380,6 +387,7 @@ public class FoldableTree {
 		// Containers for unfolded nodes/terms
 		private final HashSet<Integer> unfoldedNodeIDs = Sets.newHashSet();
 
+		@Override
 		public void addNodeToUnfolded(final FoldableNode node) {
 			unfoldedNodeIDs.add(node.getNodeID());
 		}

@@ -13,8 +13,6 @@ import com.google.common.collect.Sets;
 
 import codesum.lm.main.FoldableTree.FoldableNode;
 import codesum.lm.main.FoldableTree.GreedyNodeOp;
-import codesum.lm.main.FoldableTree.GreedyTopicSumOptionsOp;
-import codesum.lm.main.FoldableTree.GreedyVSMOptionsOp;
 import codesum.lm.main.FoldableTree.Option;
 
 public class UnfoldAlgorithms {
@@ -27,6 +25,9 @@ public class UnfoldAlgorithms {
 
 		// Store unfolded node ranges
 		final ArrayList<Range<Integer>> folds = Lists.newArrayList();
+
+		// Initialize optionsOP (stores unfolded nodes/terms)
+		algorithm.init(tree);
 
 		HashSet<Range<Integer>> rangeSet = null;
 		do {
@@ -57,10 +58,14 @@ public class UnfoldAlgorithms {
 	 */
 	private static abstract class GreedyUnfoldAlgorithm {
 
-		HashSet<Range<Integer>> unfold(final FoldableTree tree, final boolean debug) {
+		// NodeOp (stores unfolded nodes/terms)
+		private GreedyNodeOp greedyOptionsOp;
 
-			// Get NodeOp
-			final GreedyNodeOp greedyOptionsOp = getOptionsOP(tree);
+		void init(final FoldableTree tree) {
+			greedyOptionsOp = getOptionsOP(tree);
+		}
+
+		HashSet<Range<Integer>> unfold(final FoldableTree tree, final boolean debug) {
 
 			// codeVec.resetMaxMin();
 			// Map foldable nodes to options structure
@@ -88,7 +93,7 @@ public class UnfoldAlgorithms {
 				curNode.setUnfolded();
 
 				// Add curNode ID & terms to unfoldedNodeIDs for GreedyTopicSum
-				addNodeToUnfolded(curNode);
+				greedyOptionsOp.addNodeToUnfolded(curNode);
 
 				if (debug)
 					System.out.println(
@@ -109,9 +114,6 @@ public class UnfoldAlgorithms {
 		/** Abstract method to get the best node */
 		protected abstract FoldableNode getBestNode(HashMap<FoldableNode, Option> options, double budget,
 				boolean debug);
-
-		/** Abstract method to add node to unfolded (GreedyTopicSum only) */
-		protected abstract void addNodeToUnfolded(FoldableNode node);
 
 	}
 
@@ -168,17 +170,9 @@ public class UnfoldAlgorithms {
 
 		}
 
-		private GreedyTopicSumOptionsOp topicSumOp;
-
 		@Override
 		protected GreedyNodeOp getOptionsOP(final FoldableTree tree) {
-			topicSumOp = tree.new GreedyTopicSumOptionsOp();
-			return topicSumOp;
-		}
-
-		@Override
-		protected void addNodeToUnfolded(final FoldableNode node) {
-			topicSumOp.addNodeToUnfolded(node);
+			return tree.new GreedyTopicSumOptionsOp();
 		}
 
 	}
@@ -186,17 +180,9 @@ public class UnfoldAlgorithms {
 	/** GreedyVSMAlgorithm: Unfold node with largest profit per unit cost */
 	public static class GreedyVSMAlgorithm extends GreedyTopicSumAlgorithm {
 
-		private GreedyVSMOptionsOp optionsOp;
-
 		@Override
 		protected GreedyNodeOp getOptionsOP(final FoldableTree tree) {
-			optionsOp = tree.new GreedyVSMOptionsOp();
-			return optionsOp;
-		}
-
-		@Override
-		protected void addNodeToUnfolded(final FoldableNode node) {
-			optionsOp.addNodeToUnfolded(node);
+			return tree.new GreedyVSMOptionsOp();
 		}
 
 	}
@@ -258,10 +244,6 @@ public class UnfoldAlgorithms {
 			return tree.new BaselineOptionsOp();
 		}
 
-		@Override
-		protected void addNodeToUnfolded(final FoldableNode node) {
-
-		}
 	}
 
 	/**
@@ -322,10 +304,6 @@ public class UnfoldAlgorithms {
 			return tree.new BaselineOptionsOp();
 		}
 
-		@Override
-		protected void addNodeToUnfolded(final FoldableNode node) {
-
-		}
 	}
 
 	/**
@@ -397,10 +375,6 @@ public class UnfoldAlgorithms {
 			return tree.new BaselineOptionsOp();
 		}
 
-		@Override
-		protected void addNodeToUnfolded(final FoldableNode node) {
-
-		}
 	}
 
 	/** Print bestNode and stats */
