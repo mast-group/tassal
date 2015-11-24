@@ -3,6 +3,9 @@ TASSAL: Tree-based Autofolding Software Summarization ALgorithm [![Build Status]
  
 TASSAL is a tool for the automatic summarization of source code using autofolding. Autofolding automatically creates a summary of a source code file by folding non-essential code and comment blocks. 
 
+**NEW:** For a live demo of TASSAL that allows you to summarize any GitHub project see:   
+https://code-summarizer.herokuapp.com
+
 This is an implementation of the code summarizer from our paper:  
 [*Autofolding for Source Code Summarization*](http://arxiv.org/abs/1403.4503)  
 J. Fowkes, R. Ranca, M. Allamanis, M. Lapata and C. Sutton. arXiv preprint 1403.4503, 2015.   
