@@ -50,34 +50,6 @@
     <module>tassal</module>
   </modules>
   
-  <dependencies>
-    <dependency>
-      <groupId>code-summarization</groupId>
-      <artifactId>autofolding</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>codemining</groupId>
-      <artifactId>codemining-utils</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>codemining</groupId>
-      <artifactId>codemining-core</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-        <groupId>org.apache.commons</groupId>
-        <artifactId>commons-math3</artifactId>
-        <version>3.2</version>
-    </dependency>
-    <dependency>
-	  <groupId>com.beust</groupId>
-	  <artifactId>jcommander</artifactId>
-	  <version>1.35</version>
-    </dependency> 
-  </dependencies>
-  
   <reporting>
      <plugins>
         <plugin>
